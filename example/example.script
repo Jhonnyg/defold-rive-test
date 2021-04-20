@@ -1,0 +1,7 @@
+function init(self)
+	rive.test()
+end
+
+function update(self, dt)
+	rive.draw_frame()
+end
