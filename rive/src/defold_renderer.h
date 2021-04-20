@@ -5,6 +5,11 @@ namespace rive
 {
     class DefoldRenderer : public Renderer
     {
+    private:
+        bool                    m_IsDirtyClipping;
+        Mat2D                   m_Transform;
+        dmArray<PathDescriptor> m_ClipPaths;
+        dmArray<PathDescriptor> m_AppliedClips;
     public:
         void save()                                         override;
         void restore()                                      override;

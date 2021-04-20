@@ -1,12 +1,8 @@
 
-function rive_listener(self, data)
-	print("Rive listener invoked")
-end
-
 function init(self)
-	rive.init(rive_listener, "/Users/jhonny/dev/rive-webgl/assets/clipped_circle.riv")
+	rive.init("/Users/jhonny/dev/rive-webgl/assets/clipped_circle.riv")
 end
 
 function update(self, dt)
-	rive.draw_frame()
+	-- rive.draw_frame()
 end

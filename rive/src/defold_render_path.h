@@ -6,13 +6,6 @@ namespace rive
     class DefoldRenderPath : public RenderPath
     {
     private:
-        struct PathDescriptor
-        {
-        public:
-            RenderPath* m_Path;
-            Mat2D       m_Transform;
-        };
-
         enum PathCommandType
         {
             TYPE_MOVE  = 0,

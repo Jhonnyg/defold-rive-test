@@ -1,3 +1,5 @@
+local rive_rendering = require("rive/scripts/rendering")
+
 --
 -- projection that centers content with maintained aspect ratio and optional zoom
 --
@@ -53,9 +55,15 @@ function init(self)
     self.near = -1
     self.far = 1
     self.projection_fn = stretch_projection
+
+    rive_rendering.init()
 end
 
-function update(self)
+function update(self, dt)
+
+    rive_rendering.draw(dt)
+
+    --[[
     render.set_depth_mask(true)
     render.set_stencil_mask(0xff)
     render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
@@ -86,6 +94,7 @@ function update(self)
     render.draw(self.gui_pred)
     render.draw(self.text_pred)
     render.disable_state(render.STATE_STENCIL_TEST)
+    --]]
 end
 
 function on_message(self, message_id, message)

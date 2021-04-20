@@ -2,7 +2,6 @@
 #define MODULE_NAME "rive"
 
 // Rive
-#define TESTING
 #include <artboard.hpp>
 #include <shapes/rectangle.hpp>
 #include <shapes/shape.hpp>
@@ -14,9 +13,9 @@
 
 // Defold
 #include <dmsdk/sdk.h>
+#include "defold_rive_private.h"
 #include "defold_render_path.h"
 #include "defold_renderer.h"
-#include "defold_rive_private.h"
 
 namespace rive
 {
@@ -26,7 +25,7 @@ namespace rive
     static DefoldRenderer* g_Renderer = 0;
     static RiveContext*    g_Context = 0;
 
-    void InvokeRiveListener()
+    void InvokeRiveListener(const RiveListenerData data)
     {
         rive::RiveContext* ctx = rive::g_Context;
         if (!dmScript::IsCallbackValid(ctx->m_Listener))
@@ -41,6 +40,12 @@ namespace rive
         }
         lua_State* L = dmScript::GetCallbackLuaContext(ctx->m_Listener);
         lua_newtable(L);
+
+        lua_pushinteger(L, data.m_Action);
+        lua_setfield(L, -2, "action");
+
+        lua_pushlightuserdata(L, (void*) data.m_RenderPath);
+        lua_setfield(L, -2, "render_path");
 
         dmScript::PCall(L, 2, 0);
         dmScript::TeardownCallback(ctx->m_Listener);
@@ -84,11 +89,8 @@ static rive::Artboard* LoadArtBoardFromFile(const char* path)
 
 static int Init(lua_State* L)
 {
-    // Init extension
-    rive::g_Context->m_Listener = dmScript::CreateCallback(L, 1);
-
     // Init and load artboard
-    rive::Artboard* artboard = LoadArtBoardFromFile(lua_tostring(L, 2));
+    rive::Artboard* artboard = LoadArtBoardFromFile(lua_tostring(L, 1));
 
     if (artboard != 0)
     {
@@ -99,11 +101,22 @@ static int Init(lua_State* L)
     return 0;
 }
 
+static int SetRenderListener(lua_State* L)
+{
+    if (rive::g_Context->m_Listener)
+    {
+        dmScript::DestroyCallback(rive::g_Context->m_Listener);
+    }
+    rive::g_Context->m_Listener = dmScript::CreateCallback(L, 1);
+    return 0;
+}
+
 static int DrawFrame(lua_State* L)
 {
     // Todo: pass these in?
     float width  = 960.0f;
     float height = 640.0f;
+    float dt     = lua_tonumber(L, 1);
 
     if (rive::g_Context->m_Artboard)
     {
@@ -113,6 +126,7 @@ static int DrawFrame(lua_State* L)
                        rive::Alignment::center,
                        rive::AABB(0, 0, width, height),
                        rive::g_Context->m_Artboard->bounds());
+        rive::g_Context->m_Artboard->advance(dt);
         rive::g_Context->m_Artboard->draw(rive::g_Renderer);
         rive::g_Renderer->restore();
     }
@@ -123,8 +137,9 @@ static int DrawFrame(lua_State* L)
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
-    {"init",       Init},
-    {"draw_frame", DrawFrame},
+    {"init",                Init},
+    {"draw_frame",          DrawFrame},
+    {"set_render_listener", SetRenderListener},
     {0, 0}
 };
 
@@ -147,7 +162,9 @@ dmExtension::Result AppInitializeMyExtension(dmExtension::AppParams* params)
 dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
 {
     rive::g_Context  = new rive::RiveContext;
-    rive::g_Renderer = new rive::DefoldRenderer();
+    rive::g_Renderer = new rive::DefoldRenderer;
+
+    memset(rive::g_Context,  0, sizeof(*rive::g_Context));
 
     // Init Lua
     LuaInit(params->m_L);
