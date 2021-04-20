@@ -1,48 +1,104 @@
 #define LIB_NAME "DefoldRiveTest"
 #define MODULE_NAME "rive"
 
-#include <dmsdk/sdk.h>
-
+// Rive
 #define TESTING
 #include <artboard.hpp>
 #include <shapes/rectangle.hpp>
 #include <shapes/shape.hpp>
+#include <file.hpp>
+#include <renderer.hpp>
 
+// todo: remove
 #include "no_op_renderer.hpp"
-#include "renderer.hpp"
 
+// Defold
 #include <dmsdk/sdk.h>
 #include "defold_render_path.h"
 #include "defold_renderer.h"
+#include "defold_rive_private.h"
 
 namespace rive
 {
     RenderPaint* makeRenderPaint() { return new NoOpRenderPaint();  }
     RenderPath* makeRenderPath()   { return new DefoldRenderPath(); }
 
-    static DefoldRenderer* renderer  = new DefoldRenderer();
-    static Artboard* active_artboard = 0;
+    static DefoldRenderer* g_Renderer = 0;
+    static RiveContext*    g_Context = 0;
+
+    void InvokeRiveListener()
+    {
+        rive::RiveContext* ctx = rive::g_Context;
+        if (!dmScript::IsCallbackValid(ctx->m_Listener))
+        {
+            dmLogWarning("No callback function set!");
+            return;
+        }
+
+        if (!dmScript::SetupCallback(ctx->m_Listener))
+        {
+            return;
+        }
+        lua_State* L = dmScript::GetCallbackLuaContext(ctx->m_Listener);
+        lua_newtable(L);
+
+        dmScript::PCall(L, 2, 0);
+        dmScript::TeardownCallback(ctx->m_Listener);
+    }
 }
 
-static int Test(lua_State* L)
+static rive::Artboard* LoadArtBoardFromFile(const char* path)
 {
-    rive::active_artboard = new rive::Artboard();
-    rive::Shape* shape = new rive::Shape();
-    rive::Rectangle* rectangle = new rive::Rectangle();
+    FILE* fp = fopen(path, "r");
+    if (fp == 0)
+    {
+        dmLogError("Failed to open file from '%s'", path);
+        return 0;
+    }
+    
+    fseek(fp, 0, SEEK_END);
+    size_t fileBytesLength = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    uint8_t* fileBytes = new uint8_t[fileBytesLength];
+    if (fread(fileBytes, 1, fileBytesLength, fp) != fileBytesLength)
+    {
+        delete[] fileBytes;
+        dmLogError("Failed to read file from '%s'", path);
+        return 0;
+    }
 
-    rectangle->x(0.0f);
-    rectangle->y(0.0f);
-    rectangle->width(100.0f);
-    rectangle->height(200.0f);
-    rectangle->cornerRadius(20.0f);
+    rive::File* file          = 0;
+    rive::BinaryReader reader = rive::BinaryReader(fileBytes, fileBytesLength);
+    rive::ImportResult result = rive::File::import(reader, &file);
+    if (result != rive::ImportResult::success)
+    {
+        delete[] fileBytes;
+        fprintf(stderr, "failed to import file\n");
+        return 0;
+    }
 
-    rive::active_artboard->addObject(rive::active_artboard);
-    rive::active_artboard->addObject(shape);
-    rive::active_artboard->addObject(rectangle);
-    rectangle->parentId(1);
+    delete[] fileBytes;
 
-    rive::active_artboard->initialize();
-    rive::active_artboard->advance(0.0f);
+    return file->artboard();
+}
+
+static int Init(lua_State* L)
+{
+    // Init extension
+    rive::g_Context->m_Listener = dmScript::CreateCallback(L, 1);
+
+    // Init and load artboard
+    rive::Artboard* artboard = LoadArtBoardFromFile(lua_tostring(L, 2));
+
+    if (artboard == 0)
+    {
+        dmLogError("Unable to load rive file.");
+        return 0;
+    }
+
+    rive::g_Context->m_Artboard = artboard;
+    rive::g_Context->m_Artboard->advance(0.0f);
+
     return 0;
 }
 
@@ -52,18 +108,16 @@ static int DrawFrame(lua_State* L)
     float width  = 960.0f;
     float height = 640.0f;
 
-    if (rive::active_artboard)
+    if (rive::g_Context->m_Artboard)
     {
-        dmLogInfo("DrawFrame");
-        
-        rive::renderer->save();
-        rive::renderer->startFrame();
-        rive::renderer->align(rive::Fit::contain,
+        rive::g_Renderer->save();
+        rive::g_Renderer->startFrame();
+        rive::g_Renderer->align(rive::Fit::contain,
                        rive::Alignment::center,
                        rive::AABB(0, 0, width, height),
-                       rive::active_artboard->bounds());
-        rive::active_artboard->draw(rive::renderer);
-        rive::renderer->restore();
+                       rive::g_Context->m_Artboard->bounds());
+        rive::g_Context->m_Artboard->draw(rive::g_Renderer);
+        rive::g_Renderer->restore();
     }
 
     return 0;
@@ -72,7 +126,7 @@ static int DrawFrame(lua_State* L)
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
-    {"test",       Test},
+    {"init",       Init},
     {"draw_frame", DrawFrame},
     {0, 0}
 };
@@ -95,6 +149,9 @@ dmExtension::Result AppInitializeMyExtension(dmExtension::AppParams* params)
 
 dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
 {
+    rive::g_Context  = new rive::RiveContext;
+    rive::g_Renderer = new rive::DefoldRenderer();
+
     // Init Lua
     LuaInit(params->m_L);
     return dmExtension::RESULT_OK;
@@ -107,6 +164,12 @@ dmExtension::Result AppFinalizeMyExtension(dmExtension::AppParams* params)
 
 dmExtension::Result FinalizeMyExtension(dmExtension::Params* params)
 {
+    delete rive::g_Context;
+    rive::g_Context = 0;
+
+    delete rive::g_Renderer;
+    rive::g_Renderer = 0;
+
     return dmExtension::RESULT_OK;
 }
 

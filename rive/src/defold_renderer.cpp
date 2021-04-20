@@ -1,37 +1,40 @@
-#include "renderer.hpp"
+#include <renderer.hpp>
+#include <artboard.hpp>
 
 #include <dmsdk/sdk.h>
 #include "defold_renderer.h"
+#include "defold_rive_private.h"
 
 namespace rive
 {
     void DefoldRenderer::save()
     {
-        dmLogInfo("Save");
+        // dmLogInfo("Save");
     }
 
     void DefoldRenderer::restore()
     {
-        dmLogInfo("Restore");
+        // dmLogInfo("Restore");
     }
 
     void DefoldRenderer::transform(const Mat2D& transform)
     {
-        dmLogInfo("transform");
+        // dmLogInfo("transform");
     }
 
     void DefoldRenderer::drawPath(RenderPath* path, RenderPaint* paint)
     {
-        dmLogInfo("DrawPath");
+        // dmLogInfo("DrawPath");
+        InvokeRiveListener();
     }
 
     void DefoldRenderer::clipPath(RenderPath* path)
     {
-        dmLogInfo("ClipPath");
+        // dmLogInfo("ClipPath");
     }
 
     void DefoldRenderer::startFrame()
     {
-        dmLogInfo("StartFrame");
+        // dmLogInfo("StartFrame");
     }
 }

@@ -65,7 +65,7 @@ namespace rive
 
     void DefoldRenderPath::fillRule(FillRule value)
     {
-        dmLogInfo("fillRule");
+        // dmLogInfo("fillRule");
         m_FillRule = value;
     }
 
