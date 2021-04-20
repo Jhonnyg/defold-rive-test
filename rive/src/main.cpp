@@ -47,6 +47,12 @@ namespace rive
         lua_pushlightuserdata(L, (void*) data.m_RenderPath);
         lua_setfield(L, -2, "render_path");
 
+        lua_pushboolean(L, data.m_IsClipping);
+        lua_setfield(L, -2, "is_clipping");
+
+        lua_pushboolean(L, data.m_IsEvenOdd);
+        lua_setfield(L, -2, "is_even_odd");
+
         dmScript::PCall(L, 2, 0);
         dmScript::TeardownCallback(ctx->m_Listener);
     }
@@ -123,12 +129,23 @@ static int DrawFrame(lua_State* L)
         rive::g_Renderer->save();
         rive::g_Renderer->startFrame();
         rive::g_Renderer->align(rive::Fit::contain,
-                       rive::Alignment::center,
-                       rive::AABB(0, 0, width, height),
-                       rive::g_Context->m_Artboard->bounds());
+           rive::Alignment::center,
+           rive::AABB(0, 0, width, height),
+           rive::g_Context->m_Artboard->bounds());
         rive::g_Context->m_Artboard->advance(dt);
         rive::g_Context->m_Artboard->draw(rive::g_Renderer);
         rive::g_Renderer->restore();
+    }
+
+    return 0;
+}
+
+static int PathStencil(lua_State* L)
+{
+    rive::DefoldRenderPath* rp = (rive::DefoldRenderPath*) lua_touserdata(L, 1);
+    if (rp)
+    {
+        rp->stencil();
     }
 
     return 0;
@@ -140,6 +157,7 @@ static const luaL_reg Module_methods[] =
     {"init",                Init},
     {"draw_frame",          DrawFrame},
     {"set_render_listener", SetRenderListener},
+    {"stencil",             PathStencil},
     {0, 0}
 };
 

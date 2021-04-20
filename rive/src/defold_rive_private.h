@@ -18,15 +18,19 @@ namespace rive
 
     enum RiveListenerAction
     {
-        ACTION_NONE        = 0,
-        ACTION_DRAW_PATH   = 1,
-        ACTION_START_FRAME = 2,
+        ACTION_NONE            = 0,
+        ACTION_DRAW_PATH       = 1,
+        ACTION_START_FRAME     = 2,
+        ACTION_APPLY_CLIPPING  = 3,
+        ACTION_APPLY_CLIP_PATH = 4,
     };
 
     struct RiveListenerData
     {
         RiveListenerAction m_Action;
         RenderPath*        m_RenderPath;
+        bool               m_IsClipping;
+        bool               m_IsEvenOdd;
     };
 
     void InvokeRiveListener(const RiveListenerData data);

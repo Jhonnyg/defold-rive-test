@@ -44,7 +44,7 @@ namespace rive
 
         void computeContour();
         void stencil();
-
+        inline const FillRule getFillRule() { return m_FillRule; }
         inline const dmBuffer::HBuffer getBufferCover() { return m_BufferCover; }
     };
 }

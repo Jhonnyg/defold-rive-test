@@ -7,9 +7,13 @@ namespace rive
     {
     private:
         bool                    m_IsDirtyClipping;
+        bool                    m_IsClipping;
         Mat2D                   m_Transform;
         dmArray<PathDescriptor> m_ClipPaths;
         dmArray<PathDescriptor> m_AppliedClips;
+
+        void applyClipping();
+        void applyClipPath(rive::RenderPath* renderPath, Mat2D transform);
     public:
         void save()                                         override;
         void restore()                                      override;
