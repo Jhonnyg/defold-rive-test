@@ -55,7 +55,7 @@ static rive::Artboard* LoadArtBoardFromFile(const char* path)
         dmLogError("Failed to open file from '%s'", path);
         return 0;
     }
-    
+
     fseek(fp, 0, SEEK_END);
     size_t fileBytesLength = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -73,7 +73,7 @@ static rive::Artboard* LoadArtBoardFromFile(const char* path)
     if (result != rive::ImportResult::success)
     {
         delete[] fileBytes;
-        fprintf(stderr, "failed to import file\n");
+        dmLogError("Failed to import file from '%s'", path);
         return 0;
     }
 
@@ -90,14 +90,11 @@ static int Init(lua_State* L)
     // Init and load artboard
     rive::Artboard* artboard = LoadArtBoardFromFile(lua_tostring(L, 2));
 
-    if (artboard == 0)
+    if (artboard != 0)
     {
-        dmLogError("Unable to load rive file.");
-        return 0;
+        rive::g_Context->m_Artboard = artboard;
+        rive::g_Context->m_Artboard->advance(0.0f);
     }
-
-    rive::g_Context->m_Artboard = artboard;
-    rive::g_Context->m_Artboard->advance(0.0f);
 
     return 0;
 }

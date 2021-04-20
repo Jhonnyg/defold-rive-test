@@ -40,7 +40,7 @@ embedded_instances {
   data: "embedded_components {\n"
   "  id: \"mesh\"\n"
   "  type: \"mesh\"\n"
-  "  data: \"material: \\\"/builtins/materials/model.material\\\"\\n"
+  "  data: \"material: \\\"/assets/debug.material\\\"\\n"
   "vertices: \\\"/assets/quad.buffer\\\"\\n"
   "primitive_type: PRIMITIVE_TRIANGLES\\n"
   "position_stream: \\\"position\\\"\\n"
@@ -71,8 +71,8 @@ embedded_instances {
     w: 1.0
   }
   scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 100.0
+    y: 100.0
+    z: 100.0
   }
 }
