@@ -53,34 +53,30 @@ local function rive_render_apply_clip_path(action)
 
     -- todo:
     -- path.stencil(this, transform, 0, isEvenOdd);
-    rive.stencil(action.render_path)
+    -- rive.stencil(action.render_path) <- infinte loop?
 
     render.set_color_mask(false, false, false, false)
-    
-    --[[
-    // Fail when not equal to 0 and replace with 0x80 (mark high bit as included in clip). Require stencil mask (write mask) of 0xFF and stencil func mask of 0x7F such that the comparison looks for 0 but write 0x80.
-    gl.stencilMask(0xFF);
-    gl.stencilFunc(gl.NOTEQUAL, 0x80, 0x7F);
-    gl.stencilOp(gl.ZERO, gl.ZERO, gl.REPLACE);
-    if (isClipping) {
-        // We were already clipping, we should "cover" the combined area of the previous clip and this one, for now we blit the whole frame buffer.
-        const {
-            clearScreenProgramInfo,
-            screenBlitBuffer
-        } = this;
-        gl.useProgram(clearScreenProgramInfo.program);
 
+    -- Fail when not equal to 0 and replace with 0x80 (mark high bit as included in clip).
+    -- Require stencil mask (write mask) of 0xFF and stencil func mask of 0x7F such that the comparison looks for 0 but write 0x80.
+    render.set_stencil_mask(0xff)
+    render.set_stencil_func(render.COMPARE_FUNC_NOTEQUAL, 0x80, 0x7f)
+    render.set_stencil_op(render.STENCIL_OP_ZERO, render.STENCIL_OP_ZERO, render.STENCIL_OP_REPLACE)
+
+    if action.is_clipping then
+        -- gl.useProgram(clearScreenProgramInfo.program);
+        --[[
         twgl.setBuffersAndAttributes(
             gl,
             clearScreenProgramInfo,
             screenBlitBuffer
         );
-
-        twgl.drawBufferInfo(gl, screenBlitBuffer);
-    } else {
-        path.cover(this, transform, programInfo);
-    }
-    --]]
+        --]]
+        -- twgl.drawBufferInfo(gl, screenBlitBuffer);
+    else
+        -- todo: path.cover(this, transform, programInfo);
+        rive.cover(action.render_path)
+    end
 end
 
 local function rive_render_listener(self, data)

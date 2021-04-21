@@ -66,8 +66,7 @@ namespace rive
         // todo: better way of copying this array?
         m_AppliedClips.SetCapacity(m_ClipPaths.Capacity());
         m_AppliedClips.SetSize(0);
-        // this doesn't work
-        // m_AppliedClips.PushArray(m_ClipPaths, m_ClipPaths.Size());
+        m_AppliedClips.PushArray(m_ClipPaths.Begin(), m_ClipPaths.Size());
     }
 
     void DefoldRenderer::save()

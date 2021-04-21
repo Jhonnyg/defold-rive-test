@@ -195,5 +195,41 @@ namespace rive
         {
             computeContour();
         }
+
+        // todo:
+        // if (isEvenOdd)
+        // {
+        //     gl.frontFace(idx % 2 == 0 ? gl.CCW : gl.CW);
+        // }
+        // twgl.setBuffersAndAttributes(gl, programInfo, contourBufferInfo);
+        // twgl.setUniforms(programInfo, uniforms);
+        // twgl.drawBufferInfo(gl, contourBufferInfo);
+    }
+
+    void DefoldRenderPath::cover(const Mat2D& transform)
+    {
+        if (m_Paths.Size() > 0)
+        {
+            for (int i=0; i < m_Paths.Size(); i++)
+            {
+                DefoldRenderPath* asDefoldPath = (DefoldRenderPath*) m_Paths[i].m_Path;
+
+                Mat2D path_transform;
+                Mat2D::multiply(path_transform, transform, m_Paths[i].m_Transform);
+
+                asDefoldPath->cover(path_transform);
+            }
+        }
+
+        if (m_IsDirty)
+        {
+            computeContour();
+        }
+
+
+        // todo:
+        // twgl.setBuffersAndAttributes(gl, programInfo, coverBufferInfo);
+        // twgl.setUniforms(programInfo, uniforms);
+        // twgl.drawBufferInfo(gl, coverBufferInfo);
     }
 }

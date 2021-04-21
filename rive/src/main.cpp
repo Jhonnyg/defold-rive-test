@@ -151,6 +151,19 @@ static int PathStencil(lua_State* L)
     return 0;
 }
 
+static int PathCover(lua_State* L)
+{
+    rive::DefoldRenderPath* rp = (rive::DefoldRenderPath*) lua_touserdata(L, 1);
+    if (rp)
+    {
+        // todo: use transform from lua
+        rive::Mat2D transform;
+        rp->cover(transform);
+    }
+
+    return 0;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
@@ -158,6 +171,7 @@ static const luaL_reg Module_methods[] =
     {"draw_frame",          DrawFrame},
     {"set_render_listener", SetRenderListener},
     {"stencil",             PathStencil},
+    {"cover",               PathCover},
     {0, 0}
 };
 
