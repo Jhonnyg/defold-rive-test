@@ -12,12 +12,15 @@ namespace rive
 {
     void DefoldRenderer::applyClipPath(RenderPath* renderPath, Mat2D transform)
     {
+        /*
         InvokeRiveListener({
             .m_Action     = ACTION_APPLY_CLIP_PATH,
             .m_RenderPath = renderPath,
             .m_IsClipping = m_IsClipping,
             .m_IsEvenOdd  = ((DefoldRenderPath*) renderPath)->getFillRule() == FillRule::evenOdd,
         });
+        */
+
         m_IsClipping = true;
     }
 
@@ -50,7 +53,7 @@ namespace rive
             return;
         }
 
-        InvokeRiveListener({.m_Action = ACTION_APPLY_CLIPPING});
+        // InvokeRiveListener({.m_Action = ACTION_APPLY_CLIPPING});
 
         if (m_ClipPaths.Size() > 0)
         {
@@ -71,12 +74,10 @@ namespace rive
 
     void DefoldRenderer::save()
     {
-        // dmLogInfo("Save");
     }
 
     void DefoldRenderer::restore()
     {
-        // dmLogInfo("Restore");
     }
 
     void DefoldRenderer::transform(const Mat2D& transform)
@@ -91,10 +92,12 @@ namespace rive
             applyClipping();
         }
 
+        /*
         InvokeRiveListener({
             .m_Action     = ACTION_DRAW_PATH,
             .m_RenderPath = path
         });
+        */
     }
 
     void DefoldRenderer::clipPath(RenderPath* path)
@@ -112,6 +115,6 @@ namespace rive
         m_AppliedClips.SetSize(0);
         m_IsDirtyClipping = false;
 
-        InvokeRiveListener({.m_Action = ACTION_START_FRAME});
+        AddCmd({.m_Cmd = CMD_START_FRAME})
     }
 }

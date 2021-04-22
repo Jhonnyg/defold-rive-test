@@ -4,5 +4,6 @@ function init(self)
 end
 
 function update(self, dt)
-	-- rive.draw_frame()
+	local rive_cmds = rive.draw_frame()
+	msg.post ("@render:", "on_rive_update", rive_cmds)
 end

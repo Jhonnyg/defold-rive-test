@@ -46,7 +46,6 @@ namespace rive
 
     void DefoldRenderPath::reset()
     {
-        dmLogInfo("Reset");
         m_Paths.SetCapacity(0);
         m_PathCommands.SetCapacity(0);
         m_IsDirty = true;
@@ -54,7 +53,6 @@ namespace rive
 
     void DefoldRenderPath::addRenderPath(RenderPath* path, const Mat2D& transform)
     {
-        dmLogInfo("Adding path %d", m_Paths.Size());
         PathDescriptor desc = {path, transform};
 
         if (m_Paths.Size() == m_Paths.Capacity())
@@ -67,13 +65,11 @@ namespace rive
 
     void DefoldRenderPath::fillRule(FillRule value)
     {
-        // dmLogInfo("fillRule");
         m_FillRule = value;
     }
 
     void DefoldRenderPath::moveTo(float x, float y)
     {
-        dmLogInfo("moveTo");
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
@@ -88,7 +84,6 @@ namespace rive
 
     void DefoldRenderPath::lineTo(float x, float y)
     {
-        dmLogInfo("lineTo");
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
@@ -103,7 +98,6 @@ namespace rive
 
     void DefoldRenderPath::cubicTo(float ox, float oy, float ix, float iy, float x, float y)
     {
-        dmLogInfo("cubicTo");
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
@@ -122,7 +116,6 @@ namespace rive
 
     void DefoldRenderPath::close()
     {
-        dmLogInfo("close");
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
@@ -195,15 +188,6 @@ namespace rive
         {
             computeContour();
         }
-
-        // todo:
-        // if (isEvenOdd)
-        // {
-        //     gl.frontFace(idx % 2 == 0 ? gl.CCW : gl.CW);
-        // }
-        // twgl.setBuffersAndAttributes(gl, programInfo, contourBufferInfo);
-        // twgl.setUniforms(programInfo, uniforms);
-        // twgl.drawBufferInfo(gl, contourBufferInfo);
     }
 
     void DefoldRenderPath::cover(const Mat2D& transform)
@@ -225,11 +209,5 @@ namespace rive
         {
             computeContour();
         }
-
-
-        // todo:
-        // twgl.setBuffersAndAttributes(gl, programInfo, coverBufferInfo);
-        // twgl.setUniforms(programInfo, uniforms);
-        // twgl.drawBufferInfo(gl, coverBufferInfo);
     }
 }

@@ -56,12 +56,15 @@ function init(self)
     self.far = 1
     self.projection_fn = stretch_projection
 
-    rive_rendering.init()
+    self.rive_commands = {}
+    -- rive_rendering.init()
 end
 
 function update(self, dt)
 
-    rive_rendering.draw(dt)
+    rive_rendering.execute(self.rive_commands)
+
+    -- rive_rendering.draw(dt)
 
     --[[
     render.set_depth_mask(true)
@@ -118,5 +121,7 @@ function on_message(self, message_id, message)
         self.near = message.near or -1
         self.far = message.far or 1
         self.projection_fn = fixed_fit_projection
+    elseif message_id == hash("on_rive_update") then
+        self.rive_commands = message
     end
 end

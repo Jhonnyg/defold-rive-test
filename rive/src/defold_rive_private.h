@@ -10,10 +10,22 @@ namespace rive
         Mat2D       m_Transform;
     };
 
+    enum RiveCmdType
+    {
+        CMD_NONE        = 0,
+        CMD_START_FRAME = 1,
+    };
+
+    struct RiveCmd
+    {
+        RiveCmdType m_Cmd;
+    };
+
     struct RiveContext
     {
         Artboard*                  m_Artboard;
         dmScript::LuaCallbackInfo* m_Listener;
+        dmArray<RiveCmd>           m_Commands;
     };
 
     enum RiveListenerAction
@@ -34,6 +46,7 @@ namespace rive
     };
 
     void InvokeRiveListener(const RiveListenerData data);
+    void AddCmd(const RiveCmd cmd);
 }
 
 #endif

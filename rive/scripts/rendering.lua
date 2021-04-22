@@ -1,13 +1,9 @@
 
-local Action = {
-    NONE            = 0,
-    RENDER_PATH     = 1,
-    START_FRAME     = 2,
-    APPLY_CLIPPING  = 3,
-    APPLY_CLIP_PATH = 4,
-}
+local function rive_render_nop()
+    -- dummy fn, remove at some point
+end
 
-local function rive_render_start_frame(action)
+local function rive_render_start_frame()
     render.disable_state(render.STATE_DEPTH_TEST)
     render.disable_state(render.STATE_CULL_FACE)
     render.enable_state(render.STATE_STENCIL_TEST)
@@ -15,7 +11,7 @@ local function rive_render_start_frame(action)
     render.clear({[render.BUFFER_COLOR_BIT] = vmath.vector4(0, 0, 0, 0), [render.BUFFER_STENCIL_BIT] = 1})
 end
 
-local function rive_render_apply_clipping(action)
+local function rive_render_apply_clipping()
     render.set_stencil_mask(0xff)
     render.set_stencil_func(render.COMPARE_FUNC_ALWAYS, 0x0, 0xff)
     render.set_stencil_op(render.STENCIL_OP_ZERO, render.STENCIL_OP_ZERO, render.STENCIL_OP_ZERO)
@@ -28,6 +24,7 @@ local function rive_render_apply_clipping(action)
 end
 
 local function rive_render_apply_clip_path(action)
+    --[[
     -- todo:
     -- gl.useProgram(programInfo.program);
 
@@ -65,41 +62,33 @@ local function rive_render_apply_clip_path(action)
 
     if action.is_clipping then
         -- gl.useProgram(clearScreenProgramInfo.program);
-        --[[
-        twgl.setBuffersAndAttributes(
-            gl,
-            clearScreenProgramInfo,
-            screenBlitBuffer
-        );
-        --]]
+        -- twgl.setBuffersAndAttributes(
+        --     gl,
+        --     clearScreenProgramInfo,
+        --     screenBlitBuffer
+        -- );
         -- twgl.drawBufferInfo(gl, screenBlitBuffer);
     else
         -- todo: path.cover(this, transform, programInfo);
         rive.cover(action.render_path)
     end
+    --]]
 end
 
-local function rive_render_listener(self, data)
-    local action = data.action
-    
-    if action == Action.START_FRAME then
-        rive_render_start_frame(data)
-    elseif action == Action.APPLY_CLIPPING then
-        rive_render_apply_clipping(data)
-    elseif action == Action.APPLY_CLIP_PATH then
-        rive_render_apply_clip_path(data)
-    end
-end
-
+local rive_render_fn_tbl           = {}
+rive_render_fn_tbl.CMD_NONE        = rive_render_nop
+rive_render_fn_tbl.CMD_START_FRAME = rive_render_start_frame
 
 local M = {}
 
-M.init = function()
-    rive.set_render_listener(rive_render_listener)
-end
+M.execute = function(rive_commands)
+    if rive_commands == nil then
+        return
+    end
 
-M.draw = function(dt)
-    rive.draw_frame(dt)
+    for i = 1, #rive_commands do
+        rive_render_fn_tbl[cmd_data.cmd](cmd_data)
+    end
 end
 
 return M

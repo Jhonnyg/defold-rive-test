@@ -25,12 +25,17 @@ namespace rive
     static DefoldRenderer* g_Renderer = 0;
     static RiveContext*    g_Context = 0;
 
+    static inline void ClearCommands()
+    {
+        rive::g_Context->m_Commands.SetSize(0);
+    }
+
     void InvokeRiveListener(const RiveListenerData data)
     {
         rive::RiveContext* ctx = rive::g_Context;
         if (!dmScript::IsCallbackValid(ctx->m_Listener))
         {
-            dmLogWarning("No callback function set!");
+            // dmLogWarning("No callback function set!");
             return;
         }
 
@@ -55,6 +60,18 @@ namespace rive
 
         dmScript::PCall(L, 2, 0);
         dmScript::TeardownCallback(ctx->m_Listener);
+    }
+
+    void AddCmd(const RiveCmd cmd)
+    {
+        rive::RiveContext* ctx = rive::g_Context;
+
+        if (ctx->m_Commands.Size() == ctx->m_Commands.Capacity())
+        {
+            ctx->m_Commands.SetCapacity(ctx->m_Commands.Size() + 1);
+        }
+
+        ctx->m_Commands.Push(cmd);
     }
 }
 
@@ -117,6 +134,30 @@ static int SetRenderListener(lua_State* L)
     return 0;
 }
 
+static int PushRiveCmdsToLua(lua_State* L)
+{
+    lua_newtable(L);
+
+    for (int i = 0; i < rive::g_Context->m_Commands.Size(); ++i)
+    {
+        const rive::RiveCmd cmd = rive::g_Context->m_Commands[i];
+
+        // push index
+        lua_pushnumber(L, i + 1);
+
+        // create sub-table and set cmd data
+        lua_newtable(L);
+        lua_pushstring(L, "cmd");
+        lua_pushinteger(L, cmd.m_Cmd);
+        lua_settable(L, -3);
+
+        // push new table to index
+        lua_settable(L, -3);
+    }
+
+    return 1;
+}
+
 static int DrawFrame(lua_State* L)
 {
     // Todo: pass these in?
@@ -126,6 +167,8 @@ static int DrawFrame(lua_State* L)
 
     if (rive::g_Context->m_Artboard)
     {
+        rive::ClearCommands();
+
         rive::g_Renderer->save();
         rive::g_Renderer->startFrame();
         rive::g_Renderer->align(rive::Fit::contain,
@@ -135,6 +178,8 @@ static int DrawFrame(lua_State* L)
         rive::g_Context->m_Artboard->advance(dt);
         rive::g_Context->m_Artboard->draw(rive::g_Renderer);
         rive::g_Renderer->restore();
+
+        return PushRiveCmdsToLua(L);
     }
 
     return 0;
@@ -181,6 +226,14 @@ static void LuaInit(lua_State* L)
 
     // Register lua names
     luaL_register(L, MODULE_NAME, Module_methods);
+
+    #define REGISTER_RIVE_ENUM(name) \
+        lua_pushnumber(L, (lua_Number) rive::name); \
+        lua_setfield(L, -2, #name);
+
+    REGISTER_RIVE_ENUM(CMD_NONE)
+
+    #undef REGISTER_RIVE_ENUM
 
     lua_pop(L, 1);
     assert(top == lua_gettop(L));
