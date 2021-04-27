@@ -8,22 +8,30 @@
 #include <file.hpp>
 #include <renderer.hpp>
 
-// todo: remove
-#include "no_op_renderer.hpp"
-
 // Defold
 #include <dmsdk/sdk.h>
+#include "defold_rive_no_op_renderpaint.h"
 #include "defold_rive_private.h"
-#include "defold_render_path.h"
-#include "defold_renderer.h"
+
+// stencil to cover
+#include "stc/defold_render_path.h"
+#include "stc/defold_renderer.h"
+
+// tesselation
+// #include "tessellation/defold_render_path.h"
+// #include "tessellation/defold_renderer.h"
 
 namespace rive
 {
-    RenderPaint* makeRenderPaint() { return new NoOpRenderPaint();  }
-    RenderPath* makeRenderPath()   { return new DefoldRenderPath(); }
+    static const RiveRenderMode g_RenderMode = MODE_STENCIL_TO_COVER; //MODE_TESSELLATION;
+    static DefoldRenderer*      g_Renderer = 0;
+    static RiveContext*         g_Context = 0;
 
-    static DefoldRenderer* g_Renderer = 0;
-    static RiveContext*    g_Context = 0;
+    RenderPaint* makeRenderPaint() { return new DefoldNoOpRenderPaint();  }
+    RenderPath* makeRenderPath()
+    {
+        return g_RenderMode == MODE_TESSELLATION ? 0 : new DefoldRenderPath;
+    }
 
     static inline void ClearCommands()
     {
@@ -35,7 +43,6 @@ namespace rive
         rive::RiveContext* ctx = rive::g_Context;
         if (!dmScript::IsCallbackValid(ctx->m_Listener))
         {
-            // dmLogWarning("No callback function set!");
             return;
         }
 
@@ -185,6 +192,13 @@ static int DrawFrame(lua_State* L)
     return 0;
 }
 
+static int GetRenderMode(lua_State* L)
+{
+    lua_pushinteger(L, rive::g_RenderMode);
+    return 1;
+}
+
+/*
 static int PathStencil(lua_State* L)
 {
     rive::DefoldRenderPath* rp = (rive::DefoldRenderPath*) lua_touserdata(L, 1);
@@ -208,6 +222,7 @@ static int PathCover(lua_State* L)
 
     return 0;
 }
+*/
 
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
@@ -215,9 +230,8 @@ static const luaL_reg Module_methods[] =
     {"init",                Init},
     {"draw_frame",          DrawFrame},
     {"set_render_listener", SetRenderListener},
-    {"stencil",             PathStencil},
-    {"cover",               PathCover},
-    {0, 0}
+    {"render_mode",         GetRenderMode},
+    { 0, 0}
 };
 
 static void LuaInit(lua_State* L)
@@ -231,8 +245,13 @@ static void LuaInit(lua_State* L)
         lua_pushnumber(L, (lua_Number) rive::name); \
         lua_setfield(L, -2, #name);
 
-    REGISTER_RIVE_ENUM(CMD_NONE)
-    REGISTER_RIVE_ENUM(CMD_START_FRAME)
+    // Register commands
+    REGISTER_RIVE_ENUM(CMD_NONE);
+    REGISTER_RIVE_ENUM(CMD_START_FRAME);
+
+    // Register render modes
+    REGISTER_RIVE_ENUM(MODE_TESSELLATION);
+    REGISTER_RIVE_ENUM(MODE_STENCIL_TO_COVER);
 
     #undef REGISTER_RIVE_ENUM
 

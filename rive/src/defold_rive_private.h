@@ -10,6 +10,12 @@ namespace rive
         Mat2D       m_Transform;
     };
 
+    enum RiveRenderMode
+    {
+        MODE_TESSELLATION     = 0,
+        MODE_STENCIL_TO_COVER = 1,
+    };
+
     enum RiveCmdType
     {
         CMD_NONE        = 0,

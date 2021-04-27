@@ -2,7 +2,7 @@
 #include <renderer.hpp>
 
 #include <dmsdk/sdk.h>
-#include "defold_rive_private.h"
+#include "../defold_rive_private.h"
 #include "defold_render_path.h"
 
 namespace rive
