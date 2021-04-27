@@ -115,6 +115,6 @@ namespace rive
         m_AppliedClips.SetSize(0);
         m_IsDirtyClipping = false;
 
-        AddCmd({.m_Cmd = CMD_START_FRAME})
+        AddCmd({.m_Cmd = CMD_START_FRAME});
     }
 }

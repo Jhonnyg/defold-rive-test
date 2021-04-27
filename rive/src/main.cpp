@@ -232,6 +232,7 @@ static void LuaInit(lua_State* L)
         lua_setfield(L, -2, #name);
 
     REGISTER_RIVE_ENUM(CMD_NONE)
+    REGISTER_RIVE_ENUM(CMD_START_FRAME)
 
     #undef REGISTER_RIVE_ENUM
 

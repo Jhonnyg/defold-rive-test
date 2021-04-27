@@ -75,9 +75,9 @@ local function rive_render_apply_clip_path(action)
     --]]
 end
 
-local rive_render_fn_tbl           = {}
-rive_render_fn_tbl.CMD_NONE        = rive_render_nop
-rive_render_fn_tbl.CMD_START_FRAME = rive_render_start_frame
+local rive_render_fn_tbl                 = {}
+rive_render_fn_tbl[rive.CMD_NONE]        = rive_render_nop
+rive_render_fn_tbl[rive.CMD_START_FRAME] = rive_render_start_frame
 
 local M = {}
 
@@ -87,6 +87,7 @@ M.execute = function(rive_commands)
     end
 
     for i = 1, #rive_commands do
+        local cmd_data = rive_commands[i]
         rive_render_fn_tbl[cmd_data.cmd](cmd_data)
     end
 end
