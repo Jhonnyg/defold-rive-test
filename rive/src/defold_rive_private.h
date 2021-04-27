@@ -10,6 +10,26 @@ namespace rive
         Mat2D       m_Transform;
     };
 
+    enum PathCommandType
+    {
+        TYPE_MOVE  = 0,
+        TYPE_LINE  = 1,
+        TYPE_CUBIC = 2,
+        TYPE_CLOSE = 3,
+    };
+
+    struct PathCommand
+    {
+    public:
+        PathCommandType m_Command;
+        float           m_X;
+        float           m_Y;
+        float           m_OX;
+        float           m_OY;
+        float           m_IX;
+        float           m_IY;
+    };
+
     enum RiveRenderMode
     {
         MODE_TESSELLATION     = 0,

@@ -22,7 +22,7 @@
 
 namespace rive
 {
-    static const RiveRenderMode g_RenderMode = MODE_STENCIL_TO_COVER;
+    static const RiveRenderMode g_RenderMode = MODE_TESSELLATION;
     static DefoldRenderer*      g_Renderer   = 0;
     static RiveContext*         g_Context    = 0;
 

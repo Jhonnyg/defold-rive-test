@@ -6,26 +6,6 @@ namespace rive
     class DefoldStCRenderPath : public RenderPath
     {
     private:
-        enum PathCommandType
-        {
-            TYPE_MOVE  = 0,
-            TYPE_LINE  = 1,
-            TYPE_CUBIC = 2,
-            TYPE_CLOSE = 3,
-        };
-
-        struct PathCommand
-        {
-        public:
-            PathCommandType m_Command;
-            float           m_X;
-            float           m_Y;
-            float           m_OX;
-            float           m_OY;
-            float           m_IX;
-            float           m_IY;
-        };
-
         dmArray<PathCommand>    m_PathCommands;
         dmArray<PathDescriptor> m_Paths;
         dmBuffer::HBuffer       m_BufferCover;

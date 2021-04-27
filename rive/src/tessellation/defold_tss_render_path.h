@@ -5,8 +5,12 @@ namespace rive
 {
     class DefoldTessellationRenderPath : public RenderPath
     {
+    private:
+        dmArray<PathCommand>    m_PathCommands;
+        dmArray<PathDescriptor> m_Paths;
+        bool                    m_IsDirty;
+
     public:
-        DefoldTessellationRenderPath();
         void reset()                                                           override;
         void addRenderPath(RenderPath* path, const Mat2D& transform)           override;
         void fillRule(FillRule value)                                          override;
