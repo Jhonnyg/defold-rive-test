@@ -3,7 +3,7 @@
 
 #include <dmsdk/sdk.h>
 #include "../defold_rive_private.h"
-#include "defold_render_path.h"
+#include "defold_stc_render_path.h"
 
 namespace rive
 {
@@ -39,19 +39,19 @@ namespace rive
         }
     }
 
-    DefoldRenderPath::DefoldRenderPath()
+    DefoldStCRenderPath::DefoldStCRenderPath()
     {
         createDMBuffer(&m_BufferCover, 6, "Contour");
     }
 
-    void DefoldRenderPath::reset()
+    void DefoldStCRenderPath::reset()
     {
         m_Paths.SetCapacity(0);
         m_PathCommands.SetCapacity(0);
         m_IsDirty = true;
     }
 
-    void DefoldRenderPath::addRenderPath(RenderPath* path, const Mat2D& transform)
+    void DefoldStCRenderPath::addRenderPath(RenderPath* path, const Mat2D& transform)
     {
         PathDescriptor desc = {path, transform};
 
@@ -63,12 +63,12 @@ namespace rive
         m_Paths.Push(desc);
     }
 
-    void DefoldRenderPath::fillRule(FillRule value)
+    void DefoldStCRenderPath::fillRule(FillRule value)
     {
         m_FillRule = value;
     }
 
-    void DefoldRenderPath::moveTo(float x, float y)
+    void DefoldStCRenderPath::moveTo(float x, float y)
     {
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
@@ -82,7 +82,7 @@ namespace rive
         });
     }
 
-    void DefoldRenderPath::lineTo(float x, float y)
+    void DefoldStCRenderPath::lineTo(float x, float y)
     {
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
@@ -96,7 +96,7 @@ namespace rive
         });
     }
 
-    void DefoldRenderPath::cubicTo(float ox, float oy, float ix, float iy, float x, float y)
+    void DefoldStCRenderPath::cubicTo(float ox, float oy, float ix, float iy, float x, float y)
     {
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
@@ -114,7 +114,7 @@ namespace rive
         });
     }
 
-    void DefoldRenderPath::close()
+    void DefoldStCRenderPath::close()
     {
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
@@ -126,7 +126,7 @@ namespace rive
         });
     }
 
-    void DefoldRenderPath::computeContour()
+    void DefoldStCRenderPath::computeContour()
     {
         m_IsDirty = false;
 
@@ -173,13 +173,13 @@ namespace rive
         #undef SET_BUFFER_POSITION_V2
     }
 
-    void DefoldRenderPath::stencil()
+    void DefoldStCRenderPath::stencil()
     {
         if (m_Paths.Size() > 0)
         {
             for (int i=0; i < m_Paths.Size(); i++)
             {
-                DefoldRenderPath* asDefoldPath = (DefoldRenderPath*) m_Paths[i].m_Path;
+                DefoldStCRenderPath* asDefoldPath = (DefoldStCRenderPath*) m_Paths[i].m_Path;
                 asDefoldPath->stencil();
             }
         }
@@ -190,13 +190,13 @@ namespace rive
         }
     }
 
-    void DefoldRenderPath::cover(const Mat2D& transform)
+    void DefoldStCRenderPath::cover(const Mat2D& transform)
     {
         if (m_Paths.Size() > 0)
         {
             for (int i=0; i < m_Paths.Size(); i++)
             {
-                DefoldRenderPath* asDefoldPath = (DefoldRenderPath*) m_Paths[i].m_Path;
+                DefoldStCRenderPath* asDefoldPath = (DefoldStCRenderPath*) m_Paths[i].m_Path;
 
                 Mat2D path_transform;
                 Mat2D::multiply(path_transform, transform, m_Paths[i].m_Transform);

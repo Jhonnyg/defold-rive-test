@@ -3,7 +3,7 @@
 
 namespace rive
 {
-    class DefoldRenderPath : public RenderPath
+    class DefoldStCRenderPath : public RenderPath
     {
     private:
         enum PathCommandType
@@ -33,7 +33,7 @@ namespace rive
         bool                    m_IsDirty;
 
     public:
-        DefoldRenderPath();
+        DefoldStCRenderPath();
         void reset()                                                           override;
         void addRenderPath(RenderPath* path, const Mat2D& transform)           override;
         void fillRule(FillRule value)                                          override;

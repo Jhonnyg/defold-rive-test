@@ -10,27 +10,33 @@
 
 // Defold
 #include <dmsdk/sdk.h>
-#include "defold_rive_no_op_renderpaint.h"
 #include "defold_rive_private.h"
 
 // stencil to cover
-#include "stc/defold_render_path.h"
-#include "stc/defold_renderer.h"
+#include "stc/defold_stc_render_path.h"
+#include "stc/defold_stc_renderer.h"
 
 // tesselation
-// #include "tessellation/defold_render_path.h"
-// #include "tessellation/defold_renderer.h"
+#include "tessellation/defold_tss_render_path.h"
+#include "tessellation/defold_tss_renderer.h"
 
 namespace rive
 {
-    static const RiveRenderMode g_RenderMode = MODE_STENCIL_TO_COVER; //MODE_TESSELLATION;
-    static DefoldRenderer*      g_Renderer = 0;
-    static RiveContext*         g_Context = 0;
+    static const RiveRenderMode g_RenderMode = MODE_STENCIL_TO_COVER;
+    static DefoldRenderer*      g_Renderer   = 0;
+    static RiveContext*         g_Context    = 0;
 
     RenderPaint* makeRenderPaint() { return new DefoldNoOpRenderPaint();  }
     RenderPath* makeRenderPath()
     {
-        return g_RenderMode == MODE_TESSELLATION ? 0 : new DefoldRenderPath;
+        if (g_RenderMode == MODE_TESSELLATION)
+        {
+            return new DefoldTessellationRenderPath;
+        }
+        else
+        {
+            return new DefoldStCRenderPath;
+        }
     }
 
     static inline void ClearCommands()
@@ -267,7 +273,15 @@ dmExtension::Result AppInitializeMyExtension(dmExtension::AppParams* params)
 dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
 {
     rive::g_Context  = new rive::RiveContext;
-    rive::g_Renderer = new rive::DefoldRenderer;
+
+    if (rive::g_RenderMode == rive::MODE_TESSELLATION)
+    {
+        rive::g_Renderer = new rive::DefoldTessellationRenderer;
+    }
+    else
+    {
+        rive::g_Renderer = new rive::DefoldStCRenderer;
+    }
 
     memset(rive::g_Context,  0, sizeof(*rive::g_Context));
 

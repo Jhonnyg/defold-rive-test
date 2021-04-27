@@ -3,7 +3,7 @@
 
 namespace rive
 {
-    class DefoldRenderer : public Renderer
+    class DefoldStCRenderer : public DefoldRenderer
     {
     private:
         bool                    m_IsDirtyClipping;

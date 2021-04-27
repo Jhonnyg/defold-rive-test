@@ -5,12 +5,12 @@
 
 #include <dmsdk/sdk.h>
 #include "../defold_rive_private.h"
-#include "defold_renderer.h"
-#include "defold_render_path.h"
+#include "defold_stc_renderer.h"
+#include "defold_stc_render_path.h"
 
 namespace rive
 {
-    void DefoldRenderer::applyClipPath(RenderPath* renderPath, Mat2D transform)
+    void DefoldStCRenderer::applyClipPath(RenderPath* renderPath, Mat2D transform)
     {
         /*
         InvokeRiveListener({
@@ -24,7 +24,7 @@ namespace rive
         m_IsClipping = true;
     }
 
-    void DefoldRenderer::applyClipping()
+    void DefoldStCRenderer::applyClipping()
     {
         bool same = true;
         m_IsDirtyClipping = false;
@@ -72,20 +72,20 @@ namespace rive
         m_AppliedClips.PushArray(m_ClipPaths.Begin(), m_ClipPaths.Size());
     }
 
-    void DefoldRenderer::save()
+    void DefoldStCRenderer::save()
     {
     }
 
-    void DefoldRenderer::restore()
+    void DefoldStCRenderer::restore()
     {
     }
 
-    void DefoldRenderer::transform(const Mat2D& transform)
+    void DefoldStCRenderer::transform(const Mat2D& transform)
     {
         Mat2D::multiply(m_Transform, m_Transform, transform);
     }
 
-    void DefoldRenderer::drawPath(RenderPath* path, RenderPaint* paint)
+    void DefoldStCRenderer::drawPath(RenderPath* path, RenderPaint* paint)
     {
         if (m_IsDirtyClipping)
         {
@@ -100,7 +100,7 @@ namespace rive
         */
     }
 
-    void DefoldRenderer::clipPath(RenderPath* path)
+    void DefoldStCRenderer::clipPath(RenderPath* path)
     {
         if (m_ClipPaths.Size() == m_ClipPaths.Capacity())
         {
@@ -110,7 +110,7 @@ namespace rive
         m_IsDirtyClipping = true;
     }
 
-    void DefoldRenderer::startFrame()
+    void DefoldStCRenderer::startFrame()
     {
         m_AppliedClips.SetSize(0);
         m_IsDirtyClipping = false;
