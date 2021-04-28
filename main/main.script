@@ -1,6 +1,6 @@
 
 function init(self)
-	rive.init("/Users/jhonny/dev/rive-webgl/assets/clipped_circle.riv")
+	rive.init("/Users/jhonny/dev/defold-rive-test/assets/new_file.riv")
 end
 
 function update(self, dt)

@@ -120,6 +120,8 @@ static rive::Artboard* LoadArtBoardFromFile(const char* path)
 
     delete[] fileBytes;
 
+    dmLogInfo("Num artboards: %d", file->artboardCount());
+
     return file->artboard();
 }
 
@@ -276,11 +278,11 @@ dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
 
     if (rive::g_RenderMode == rive::MODE_TESSELLATION)
     {
-        rive::g_Renderer = new rive::DefoldTessellationRenderer;
+        rive::g_Renderer = (rive::DefoldRenderer*) new rive::DefoldTessellationRenderer;
     }
     else
     {
-        rive::g_Renderer = new rive::DefoldStCRenderer;
+        rive::g_Renderer = (rive::DefoldRenderer*) new rive::DefoldStCRenderer;
     }
 
     memset(rive::g_Context,  0, sizeof(*rive::g_Context));

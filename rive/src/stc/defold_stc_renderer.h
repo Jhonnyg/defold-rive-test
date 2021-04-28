@@ -20,7 +20,7 @@ namespace rive
         void transform(const Mat2D& transform)              override;
         void drawPath(RenderPath* path, RenderPaint* paint) override;
         void clipPath(RenderPath* path)                     override;
-        void startFrame();
+        void startFrame()                                   override;
     };
 }
 
