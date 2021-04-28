@@ -69,7 +69,8 @@ namespace rive
             for (int i = 0; i < m_ClipPaths.Size(); ++i)
             {
                 const PathDescriptor& pd = m_ClipPaths[i];
-                ((DefoldTessellationRenderPath*) pd.m_Path)->drawMesh(pd.m_Transform);
+                DefoldTessellationRenderPath* p = (DefoldTessellationRenderPath*) pd.m_Path;
+                p->drawMesh(pd.m_Transform);
             }
 
             m_AppliedClips.SetCapacity(m_ClipPaths.Capacity());
@@ -86,6 +87,8 @@ namespace rive
     void DefoldTessellationRenderer::drawPath(RenderPath* path, RenderPaint* paint)
     {
         applyClipping();
+        DefoldTessellationRenderPath* p = (DefoldTessellationRenderPath*) path;
+        p->drawMesh(m_Transform);
     }
 
     void DefoldTessellationRenderer::clipPath(RenderPath* path)
@@ -96,7 +99,7 @@ namespace rive
         }
         m_ClipPaths.Push({.m_Path = path, .m_Transform = m_Transform});
 
-        dmLogInfo("Pushing %p", (uintptr_t) path);
+        // dmLogInfo("Pushing %p", (uintptr_t) path);
     }
 
     void DefoldTessellationRenderer::startFrame()

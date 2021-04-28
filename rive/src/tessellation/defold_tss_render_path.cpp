@@ -280,24 +280,24 @@ namespace rive
                 ADD_VERTEX(penX, penY); \
             }
 
-        dmLogInfo("Commands (%p):", (uintptr_t) this);
+        // dmLogInfo("Commands (%p):", (uintptr_t) this);
         for (int i=0; i < m_PathCommands.Size(); i++)
         {
             const PathCommand& pc = m_PathCommands[i];
             switch(pc.m_Command)
             {
                 case TYPE_MOVE:
-                    dmLogInfo("TYPE_MOVE");
+                    // dmLogInfo("TYPE_MOVE");
                     penX = pc.m_X;
                     penY = pc.m_Y;
                     break;
                 case TYPE_LINE:
-                    dmLogInfo("TYPE_LINE");
+                    // dmLogInfo("TYPE_LINE");
                     PEN_DOWN()
                     ADD_VERTEX(pc.m_X, pc.m_Y);
                     break;
                 case TYPE_CUBIC:
-                    dmLogInfo("TYPE_CUBIC");
+                    // dmLogInfo("TYPE_CUBIC");
                     PEN_DOWN()
                     segmentCubic(
                         Vec2D(penX, penY),
@@ -314,7 +314,7 @@ namespace rive
                     penY = pc.m_Y;
                     break;
                 case TYPE_CLOSE:
-                    dmLogInfo("TYPE_CLOSE");
+                    // dmLogInfo("TYPE_CLOSE");
                     if (isPenDown)
                     {
                         penX      = penDownX;
@@ -325,7 +325,7 @@ namespace rive
             }
         }
 
-        dmLogInfo("verticesCount: %d\n", verticesCount);
+        // dmLogInfo("verticesCount: %d\n", verticesCount);
 
         #undef ADD_VERTEX
         #undef PEN_DOWN
@@ -333,7 +333,7 @@ namespace rive
 
     void DefoldTessellationRenderPath::updateContour(float contourError)
     {
-        dmLogInfo("num paths in %p : %d", (uintptr_t) this, m_Paths.Size());
+        // dmLogInfo("num paths in %p : %d", (uintptr_t) this, m_Paths.Size());
 
         if (m_Paths.Size() > 0)
         {
