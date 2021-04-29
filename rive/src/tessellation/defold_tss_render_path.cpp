@@ -148,6 +148,11 @@ namespace rive
         createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
     }
 
+    DefoldTessellationRenderPath::~DefoldTessellationRenderPath()
+    {
+        dmBuffer::Destroy(m_BufferContour);
+    }
+
     void DefoldTessellationRenderPath::reset()
     {
         m_Paths.SetCapacity(0);

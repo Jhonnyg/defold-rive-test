@@ -10,8 +10,6 @@ M.init = function()
     else
         fn_tbl = stc
     end
-
-    pprint(fn_tbl)
 end
 
 M.execute = function(rive_commands)

@@ -24,6 +24,7 @@ namespace rive
         void addContours(TESStesselator* tess, const Mat2D& m);
     public:
         DefoldTessellationRenderPath();
+        ~DefoldTessellationRenderPath();
         void reset()                                                           override;
         void addRenderPath(RenderPath* path, const Mat2D& transform)           override;
         void fillRule(FillRule value)                                          override;

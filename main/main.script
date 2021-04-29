@@ -2,6 +2,7 @@
 function init(self)
 	rive.init("/Users/jhonny/dev/defold-rive-test/assets/new_file.riv")
 	self.paths = {}
+	self.frame = 0
 end
 
 local function get_mesh_go(self, id)
@@ -17,15 +18,13 @@ local function get_mesh_res(self, id)
 end
 
 local function handle_commands(self, rive_cmds)
-	-- for now, continous uploads seem to lock the thread
+	-- temp, remove later
 	if self.uploaded_once then
 		return
 	end
 
 	for _,v in pairs(rive_cmds) do
-		if v.cmd == rive.CMD_UPDATE_TESSELATION then
-			-- print("Tesselation updated (" .. v.id .. ")")
-
+		if _ == 4 and v.cmd == rive.CMD_UPDATE_TESSELATION then
 			local mesh_go  = get_mesh_go(self, v.id)
 			local mesh_res = get_mesh_res(self, v.id)
 			local path     = rive.get_path(v.id)
@@ -33,9 +32,7 @@ local function handle_commands(self, rive_cmds)
 			local p = vmath.vector3(path.position[1], path.position[2], 0)
 			go.set_position(p, mesh_go)
 
-			print(v.id .. " has parent " .. path.parent)
-
-			-- resource.set_buffer(mesh_res, path.buffer)
+			resource.set_buffer(mesh_res, path.buffer)
 		end
 	end
 
@@ -43,8 +40,9 @@ local function handle_commands(self, rive_cmds)
 end
 
 function update(self, dt)
+	self.frame = self.frame + 1
+	
 	local rive_cmds = rive.draw_frame()
-
 	handle_commands(self, rive_cmds)
 
 	msg.post ("@render:", "on_rive_update", rive_cmds)
