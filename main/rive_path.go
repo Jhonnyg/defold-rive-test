@@ -1,10 +1,11 @@
 embedded_components {
   id: "mesh"
   type: "mesh"
-  data: "material: \"/builtins/materials/model.material\"\n"
+  data: "material: \"/assets/debug.material\"\n"
   "vertices: \"/assets/rive_null.buffer\"\n"
   "primitive_type: PRIMITIVE_TRIANGLES\n"
   "position_stream: \"position\"\n"
+  "normal_stream: \"position\"\n"
   ""
   position {
     x: 0.0

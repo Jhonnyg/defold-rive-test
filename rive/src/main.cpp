@@ -7,6 +7,7 @@
 #include <shapes/shape.hpp>
 #include <file.hpp>
 #include <renderer.hpp>
+#include <math/transform_components.hpp>
 
 // Libtess
 #include <tesselator.h>
@@ -235,7 +236,7 @@ static int PushRiveCmdsToLua(lua_State* L)
     return 1;
 }
 
-static int GetPathBuffer(lua_State* L)
+static int GetPath(lua_State* L)
 {
     int32_t id         = lua_tointeger(L, 1);
     uintptr_t pathAddr = rive::GetPathAddrFromId(id);
@@ -245,11 +246,46 @@ static int GetPathBuffer(lua_State* L)
         dmLogError("No path found with id %d", id);
     }
 
+    rive::DefoldTessellationRenderPath* tesselationPath = (rive::DefoldTessellationRenderPath*) pathAddr;
+
     dmScript::LuaHBuffer luabuf = {
-        ((rive::DefoldTessellationRenderPath*) pathAddr)->getContourBuffer(),
+        tesselationPath->getContourBuffer(),
         dmScript::OWNER_C,
     };
+
+    rive::TransformComponents decomposeResult;
+    rive::Mat2D::decompose(decomposeResult, tesselationPath->getTransform());
+
+    int parentId = -1;
+    rive::RenderPath* parent = tesselationPath->getParent();
+    if (parent)
+    {
+        parentId = rive::GetOrPutPathId(parent);
+    }
+
+    lua_newtable(L);
+
+    lua_pushstring(L, "buffer");
     dmScript::PushBuffer(L, luabuf);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "parent");
+    lua_pushinteger(L, parentId);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "position");
+    lua_newtable(L);
+
+        lua_pushnumber(L, 1);
+        lua_pushinteger(L, decomposeResult.x());
+        lua_settable(L, -3);
+
+        lua_pushnumber(L, 2);
+        lua_pushinteger(L, decomposeResult.y());
+        lua_settable(L, -3);
+
+    lua_settable(L, -3);
+
     return 1;
 }
 
@@ -319,7 +355,7 @@ static const luaL_reg Module_methods[] =
     {"draw_frame",          DrawFrame},
     {"set_render_listener", SetListener},
     {"render_mode",         GetRenderMode},
-    {"get_buffer",          GetPathBuffer},
+    {"get_path",            GetPath},
     { 0, 0}
 };
 

@@ -12,6 +12,8 @@ namespace rive
         dmBuffer::HBuffer       m_BufferContour;
         dmArray<PathCommand>    m_PathCommands;
         dmArray<PathDescriptor> m_Paths;
+        RenderPath*             m_Parent;
+        Mat2D                   m_Transform;
         FillRule                m_FillRule;
         uint32_t                m_VertexCount;
         bool                    m_IsDirty;
@@ -30,7 +32,11 @@ namespace rive
         void cubicTo(float ox, float oy, float ix, float iy, float x, float y) override;
         virtual void close()                                                   override;
         void drawMesh(const Mat2D& transform);
-        inline const dmBuffer::HBuffer getContourBuffer() { return m_BufferContour; }
+
+        inline const Mat2D             getTransform()           { return m_Transform; }
+        inline const dmBuffer::HBuffer getContourBuffer()       { return m_BufferContour; }
+        inline RenderPath*             getParent()              { return m_Parent; }
+        inline void                    setParent(RenderPath* p) { m_Parent = p; }
     };
 }
 

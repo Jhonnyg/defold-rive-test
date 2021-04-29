@@ -59,9 +59,6 @@ function update(self, dt)
 
     rive_rendering.execute(self.rive_commands)
 
-    -- rive_rendering.draw(dt)
-
-    --[[
     render.set_depth_mask(true)
     render.set_stencil_mask(0xff)
     render.clear({[render.BUFFER_COLOR_BIT] = self.clear_color, [render.BUFFER_DEPTH_BIT] = 1, [render.BUFFER_STENCIL_BIT] = 0})
@@ -76,23 +73,11 @@ function update(self, dt)
     render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
     render.disable_state(render.STATE_CULL_FACE)
 
-    render.set_projection(get_projection(self))
+    local rive_projection = vmath.matrix4_orthographic(0, render.get_width(), render.get_height(), 0, 0, 1)
+    render.set_projection(rive_projection)
 
-    render.draw(self.tile_pred)
-    render.draw(self.particle_pred)
     render.draw(self.rive_pred)
     render.draw_debug3d()
-
-    -- render GUI
-    --
-    render.set_view(vmath.matrix4())
-    render.set_projection(vmath.matrix4_orthographic(0, render.get_window_width(), 0, render.get_window_height(), -1, 1))
-
-    render.enable_state(render.STATE_STENCIL_TEST)
-    render.draw(self.gui_pred)
-    render.draw(self.text_pred)
-    render.disable_state(render.STATE_STENCIL_TEST)
-    --]]
 end
 
 function on_message(self, message_id, message)

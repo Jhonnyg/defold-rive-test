@@ -143,6 +143,7 @@ namespace rive
     }
 
     DefoldTessellationRenderPath::DefoldTessellationRenderPath()
+    : m_Parent(0)
     {
         createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
     }
@@ -164,6 +165,9 @@ namespace rive
         }
 
         dmLogInfo("ADD_RENDER_PATH %p to %p", (uintptr_t) path, (uintptr_t) this);
+
+        DefoldTessellationRenderPath* child = (DefoldTessellationRenderPath*) path;
+        child->setParent(this);
 
         m_Paths.Push(desc);
     }
@@ -438,5 +442,6 @@ namespace rive
     void DefoldTessellationRenderPath::drawMesh(const Mat2D& transform)
     {
         updateTesselation();
+        m_Transform = transform;
     }
 }

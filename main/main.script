@@ -4,24 +4,42 @@ function init(self)
 	self.paths = {}
 end
 
-local function get_mesh_res(self, id)
+local function get_mesh_go(self, id)
 	if self.paths[id] == nil then
 		self.paths[id] = factory.create("#factory")
 	end
+	return self.paths[id]
+end
 
+local function get_mesh_res(self, id)
 	local mesh_url = msg.url(nil, self.paths[id], "mesh")
 	return go.get(mesh_url, "vertices")
 end
 
 local function handle_commands(self, rive_cmds)
+	-- for now, continous uploads seem to lock the thread
+	if self.uploaded_once then
+		return
+	end
+
 	for _,v in pairs(rive_cmds) do
 		if v.cmd == rive.CMD_UPDATE_TESSELATION then
-			print("Tesselation updated (" .. v.id .. ")")
-			local mesh_res    = get_mesh_res(self, v.id)
-			local path_buffer = rive.get_buffer(v.id)
-			resource.set_buffer(mesh_res, path_buffer)
+			-- print("Tesselation updated (" .. v.id .. ")")
+
+			local mesh_go  = get_mesh_go(self, v.id)
+			local mesh_res = get_mesh_res(self, v.id)
+			local path     = rive.get_path(v.id)
+
+			local p = vmath.vector3(path.position[1], path.position[2], 0)
+			go.set_position(p, mesh_go)
+
+			print(v.id .. " has parent " .. path.parent)
+
+			-- resource.set_buffer(mesh_res, path.buffer)
 		end
 	end
+
+	self.uploaded_once = true
 end
 
 function update(self, dt)
