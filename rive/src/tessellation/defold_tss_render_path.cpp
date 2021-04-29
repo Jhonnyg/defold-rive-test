@@ -12,7 +12,6 @@
 namespace rive
 {
     static const dmhash_t VERTEX_STREAM_NAME_POSITION   = dmHashString64("position");
-    static const uint32_t COUNTOUR_BUFFER_ELEMENT_COUNT = 512;
 
     static void createDMBuffer(dmBuffer::HBuffer* buffer, uint32_t elementCount, const char* bufferName)
     {
@@ -98,7 +97,7 @@ namespace rive
                               float minSegmentLength,
                               float distTooFar,
                               float* vertices,
-                              int& verticesCount)
+                              uint32_t& verticesCount)
     {
 
         if (shouldSplitCubic(from, fromOut, toIn, to, distTooFar))
@@ -134,11 +133,10 @@ namespace rive
             float length = Vec2D::distance(from, to);
             if (length > minSegmentLength)
             {
-                int ix               = verticesCount;
                 float x              = cubicAt(t2, from[0], fromOut[0], toIn[0], to[0]);
                 float y              = cubicAt(t2, from[1], fromOut[1], toIn[1], to[1]);
-                vertices[ix * 2    ] = x;
-                vertices[ix * 2 + 1] = y;
+                vertices[verticesCount * 2    ] = x;
+                vertices[verticesCount * 2 + 1] = y;
                 verticesCount++;
             }
         }
@@ -172,6 +170,7 @@ namespace rive
 
     void DefoldTessellationRenderPath::fillRule(FillRule value)
     {
+        m_FillRule = value;
     }
 
     void DefoldTessellationRenderPath::moveTo(float x, float y)
@@ -256,19 +255,17 @@ namespace rive
         float penDownY  = 0.0f;
         float isPenDown = false;
 
-        // TODO: something else here
-        float vertices[COUNTOUR_BUFFER_ELEMENT_COUNT * 2];
-        int verticesCount = 0;
+        m_VertexCount = 0;
 
         #define ADD_VERTEX(x,y) \
             { \
-                vertices[verticesCount * 2]     = x; \
-                vertices[verticesCount * 2 + 1] = y; \
+                m_VertexData[m_VertexCount * 2]     = x; \
+                m_VertexData[m_VertexCount * 2 + 1] = y; \
                 minX = fmin(minX, x); \
                 minY = fmin(minY, y); \
                 maxX = fmax(maxX, x); \
                 maxY = fmax(maxY, y); \
-                verticesCount++; \
+                m_VertexCount++; \
             }
 
         #define PEN_DOWN() \
@@ -308,8 +305,8 @@ namespace rive
                         1.0f,
                         minSegmentLength,
                         distTooFar,
-                        vertices,
-                        verticesCount);
+                        m_VertexData,
+                        m_VertexCount);
                     penX = pc.m_X;
                     penY = pc.m_Y;
                     break;
@@ -348,6 +345,49 @@ namespace rive
         computeContour(contourError);
     }
 
+    void DefoldTessellationRenderPath::addContours(TESStesselator* tess, const Mat2D& m)
+    {
+        if (m_Paths.Size() > 0)
+        {
+            for (int i = 0; i < m_Paths.Size(); ++i)
+            {
+                DefoldTessellationRenderPath* asDefoldPath = (DefoldTessellationRenderPath*) m_Paths[i].m_Path;
+                asDefoldPath->addContours(tess, m_Paths[i].m_Transform);
+            }
+            return;
+        }
+
+        const int numComponents = 2;
+        const int stride        = sizeof(float) * numComponents;
+
+        Mat2D identity;
+        if (identity == m)
+        {
+            tessAddContour(tess, numComponents, m_VertexData, stride, m_VertexCount);
+        }
+        else
+        {
+            const float m0 = m[0];
+            const float m1 = m[1];
+            const float m2 = m[2];
+            const float m3 = m[3];
+            const float m4 = m[4];
+            const float m5 = m[5];
+
+            float transformBuffer[COUNTOUR_BUFFER_ELEMENT_COUNT * numComponents];
+
+            for (int i = 0; i < m_VertexCount * numComponents; i += numComponents)
+            {
+                float x                = m_VertexData[i];
+                float y                = m_VertexData[i + 1];
+                transformBuffer[i    ] = m0 * x + m2 * y + m4;
+                transformBuffer[i + 1] = m1 * x + m3 * y + m5;
+            }
+
+            tessAddContour(tess, numComponents, transformBuffer, stride, m_VertexCount);
+        }
+    }
+
     void DefoldTessellationRenderPath::updateTesselation()
     {
         const float contourQuality  = 0.8888888888888889f;
@@ -357,8 +397,42 @@ namespace rive
 
         updateContour(contourError);
 
-        // TODO: custom memory management here
+        // TODO: custom memory management here + move globally or something else
         TESStesselator* tess = tessNewTess(0);
+
+        Mat2D identity;
+        addContours(tess, identity);
+
+        const int windingRule = m_FillRule == FillRule::nonZero ? TESS_WINDING_NONZERO : TESS_WINDING_ODD;
+        const int elementType = TESS_POLYGONS;
+        const int polySize    = 3;
+        const int vertexSize  = 2;
+
+        if (tessTesselate(tess, windingRule, elementType, polySize, vertexSize, 0))
+        {
+            int              tessVerticesCount = tessGetVertexCount(tess);
+            int              tessElementsCount = tessGetElementCount(tess);
+            const TESSreal*  tessVertices      = tessGetVertices(tess);
+            const TESSindex* tessElements      = tessGetElements(tess);
+
+            float* dmPositions = 0;
+            getDMBufferPositionStream(m_BufferContour, dmPositions);
+
+            for (int i = 0; i < tessElementsCount; ++i)
+            {
+                const TESSindex ix              = tessElements[i];
+                dmPositions[i * vertexSize    ] = tessVertices[ ix * vertexSize    ];
+                dmPositions[i * vertexSize + 1] = tessVertices[ ix * vertexSize + 1];
+            }
+
+            AddCmd({.m_Cmd = CMD_UPDATE_TESSELATION, .m_RenderPath = this});
+        }
+        else
+        {
+            dmLogError("Unable to tesselate path ‰p", this);
+        }
+
+        tessDeleteTess(tess);
     }
 
     void DefoldTessellationRenderPath::drawMesh(const Mat2D& transform)

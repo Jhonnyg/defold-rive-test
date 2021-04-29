@@ -1,0 +1,20 @@
+embedded_components {
+  id: "mesh"
+  type: "mesh"
+  data: "material: \"/builtins/materials/model.material\"\n"
+  "vertices: \"/assets/rive_null.buffer\"\n"
+  "primitive_type: PRIMITIVE_TRIANGLES\n"
+  "position_stream: \"position\"\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+}

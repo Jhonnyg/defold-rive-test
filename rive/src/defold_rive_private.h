@@ -38,13 +38,15 @@ namespace rive
 
     enum RiveCmdType
     {
-        CMD_NONE        = 0,
-        CMD_START_FRAME = 1,
+        CMD_NONE               = 0,
+        CMD_START_FRAME        = 1,
+        CMD_UPDATE_TESSELATION = 2,
     };
 
     struct RiveCmd
     {
         RiveCmdType m_Cmd;
+        RenderPath* m_RenderPath;
     };
 
     struct RiveContext
@@ -54,6 +56,7 @@ namespace rive
         dmArray<RiveCmd>           m_Commands;
     };
 
+    // We'll probably remove the listener
     enum RiveListenerAction
     {
         ACTION_NONE            = 0,
@@ -77,7 +80,7 @@ namespace rive
     class DefoldRenderer : public Renderer
     {
     public:
-        virtual void startFrame() = 0;
+        virtual void              startFrame() = 0;
     };
 
     class DefoldNoOpRenderPaint : public RenderPaint

@@ -8,6 +8,9 @@
 #include <file.hpp>
 #include <renderer.hpp>
 
+// Libtess
+#include <tesselator.h>
+
 // Defold
 #include <dmsdk/sdk.h>
 #include "defold_rive_private.h"
@@ -22,9 +25,17 @@
 
 namespace rive
 {
-    static const RiveRenderMode g_RenderMode = MODE_TESSELLATION;
-    static DefoldRenderer*      g_Renderer   = 0;
-    static RiveContext*         g_Context    = 0;
+    struct PathIdTuple
+    {
+        uintptr_t m_PathAddr;
+        int32_t   m_Id;
+    };
+
+    static const RiveRenderMode g_RenderMode    = MODE_TESSELLATION;
+    static DefoldRenderer*      g_Renderer      = 0;
+    static RiveContext*         g_Context       = 0;
+    static int32_t              g_PathToIdSeq   = 0;
+    static dmArray<PathIdTuple> g_PathToIdTable;
 
     RenderPaint* makeRenderPaint() { return new DefoldNoOpRenderPaint();  }
     RenderPath* makeRenderPath()
@@ -86,6 +97,45 @@ namespace rive
 
         ctx->m_Commands.Push(cmd);
     }
+
+    static int32_t GetOrPutPathId(RenderPath* path)
+    {
+        uintptr_t addr = (uintptr_t) path;
+
+        for (int i = 0; i < g_PathToIdTable.Size(); ++i)
+        {
+            const PathIdTuple entry = g_PathToIdTable[i];
+            if (entry.m_PathAddr == addr)
+            {
+                return entry.m_Id;
+            }
+        }
+
+        if (g_PathToIdTable.Size() == g_PathToIdTable.Capacity())
+        {
+            g_PathToIdTable.SetCapacity(g_PathToIdTable.Size() + 1);
+        }
+
+        g_PathToIdTable.Push({
+            .m_PathAddr = addr,
+            .m_Id       = g_PathToIdSeq,
+        });
+
+        return g_PathToIdSeq++;
+    }
+
+    static uintptr_t GetPathAddrFromId(int32_t id)
+    {
+        for (int i = 0; i < g_PathToIdTable.Size(); ++i)
+        {
+            if (g_PathToIdTable[i].m_Id == id)
+            {
+                return g_PathToIdTable[i].m_PathAddr;
+            }
+        }
+
+        return 0;
+    }
 }
 
 static rive::Artboard* LoadArtBoardFromFile(const char* path)
@@ -139,7 +189,7 @@ static int Init(lua_State* L)
     return 0;
 }
 
-static int SetRenderListener(lua_State* L)
+static int SetListener(lua_State* L)
 {
     if (rive::g_Context->m_Listener)
     {
@@ -166,10 +216,40 @@ static int PushRiveCmdsToLua(lua_State* L)
         lua_pushinteger(L, cmd.m_Cmd);
         lua_settable(L, -3);
 
+        switch (cmd.m_Cmd)
+        {
+            case rive::CMD_UPDATE_TESSELATION:
+            {
+                assert(rive::g_RenderMode == rive::MODE_TESSELLATION);
+
+                lua_pushstring(L, "id");
+                lua_pushinteger(L, rive::GetOrPutPathId(cmd.m_RenderPath));
+                lua_settable(L, -3);
+            } break;
+        }
+
         // push new table to index
         lua_settable(L, -3);
     }
 
+    return 1;
+}
+
+static int GetPathBuffer(lua_State* L)
+{
+    int32_t id         = lua_tointeger(L, 1);
+    uintptr_t pathAddr = rive::GetPathAddrFromId(id);
+
+    if (pathAddr == 0)
+    {
+        dmLogError("No path found with id %d", id);
+    }
+
+    dmScript::LuaHBuffer luabuf = {
+        ((rive::DefoldTessellationRenderPath*) pathAddr)->getContourBuffer(),
+        dmScript::OWNER_C,
+    };
+    dmScript::PushBuffer(L, luabuf);
     return 1;
 }
 
@@ -237,8 +317,9 @@ static const luaL_reg Module_methods[] =
 {
     {"init",                Init},
     {"draw_frame",          DrawFrame},
-    {"set_render_listener", SetRenderListener},
+    {"set_render_listener", SetListener},
     {"render_mode",         GetRenderMode},
+    {"get_buffer",          GetPathBuffer},
     { 0, 0}
 };
 
@@ -256,6 +337,7 @@ static void LuaInit(lua_State* L)
     // Register commands
     REGISTER_RIVE_ENUM(CMD_NONE);
     REGISTER_RIVE_ENUM(CMD_START_FRAME);
+    REGISTER_RIVE_ENUM(CMD_UPDATE_TESSELATION);
 
     // Register render modes
     REGISTER_RIVE_ENUM(MODE_TESSELLATION);

@@ -21,7 +21,10 @@ M.execute = function(rive_commands)
 
     for i = 1, #rive_commands do
         local cmd_data = rive_commands[i]
-        fn_tbl[cmd_data.cmd](cmd_data)
+
+        if fn_tbl[cmd_data.cmd] then
+            fn_tbl[cmd_data.cmd](cmd_data)
+        end
     end
 end
 

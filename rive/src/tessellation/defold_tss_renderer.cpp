@@ -3,6 +3,8 @@
 #include <command_path.hpp>
 #include <math/mat2d.hpp>
 
+#include <tesselator.h>
+
 #include <dmsdk/sdk.h>
 #include "../defold_rive_private.h"
 #include "defold_tss_renderer.h"

@@ -1,9 +1,33 @@
 
 function init(self)
 	rive.init("/Users/jhonny/dev/defold-rive-test/assets/new_file.riv")
+	self.paths = {}
+end
+
+local function get_mesh_res(self, id)
+	if self.paths[id] == nil then
+		self.paths[id] = factory.create("#factory")
+	end
+
+	local mesh_url = msg.url(nil, self.paths[id], "mesh")
+	return go.get(mesh_url, "vertices")
+end
+
+local function handle_commands(self, rive_cmds)
+	for _,v in pairs(rive_cmds) do
+		if v.cmd == rive.CMD_UPDATE_TESSELATION then
+			print("Tesselation updated (" .. v.id .. ")")
+			local mesh_res    = get_mesh_res(self, v.id)
+			local path_buffer = rive.get_buffer(v.id)
+			resource.set_buffer(mesh_res, path_buffer)
+		end
+	end
 end
 
 function update(self, dt)
 	local rive_cmds = rive.draw_frame()
+
+	handle_commands(self, rive_cmds)
+
 	msg.post ("@render:", "on_rive_update", rive_cmds)
 end
