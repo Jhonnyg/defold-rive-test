@@ -44,6 +44,11 @@ namespace rive
         createDMBuffer(&m_BufferCover, 6, "Contour");
     }
 
+    uintptr_t DefoldStCRenderPath::getUserData()
+    {
+        return (uintptr_t) MODE_STENCIL_TO_COVER;
+    }
+
     void DefoldStCRenderPath::reset()
     {
         m_Paths.SetCapacity(0);

@@ -6,10 +6,12 @@ namespace rive
     class DefoldTessellationRenderer : public DefoldRenderer
     {
     private:
+        static const int STACK_ENTRY_MAX_CLIP_PATHS = 16;
+
         struct StackEntry
         {
             Mat2D          m_Transform;
-            PathDescriptor m_ClipPaths[16];
+            PathDescriptor m_ClipPaths[STACK_ENTRY_MAX_CLIP_PATHS];
             uint8_t        m_ClipPathsCount;
         };
 
@@ -19,6 +21,7 @@ namespace rive
         Mat2D                   m_Transform;
 
         void applyClipping();
+        void printStack(const char* label);
     public:
         void save()                                         override;
         void restore()                                      override;

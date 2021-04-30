@@ -18,6 +18,8 @@ namespace rive
         uint32_t                m_VertexCount;
         bool                    m_IsDirty;
 
+        bool didprint;
+
         void updateTesselation();
         void updateContour(float contourError);
         void computeContour(float contourError);
@@ -33,6 +35,7 @@ namespace rive
         void cubicTo(float ox, float oy, float ix, float iy, float x, float y) override;
         virtual void close()                                                   override;
         void drawMesh(const Mat2D& transform);
+        uintptr_t getUserData();
 
         inline const Mat2D             getTransform()           { return m_Transform; }
         inline const dmBuffer::HBuffer getContourBuffer()       { return m_BufferContour; }

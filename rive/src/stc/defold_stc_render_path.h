@@ -22,6 +22,7 @@ namespace rive
         void cubicTo(float ox, float oy, float ix, float iy, float x, float y) override;
         virtual void close()                                                   override;
 
+        uintptr_t getUserData();
         void computeContour();
         void stencil();
         void cover(const Mat2D& transform);

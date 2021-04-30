@@ -41,7 +41,8 @@ end
 
 function update(self, dt)
 	self.frame = self.frame + 1
-	
+
+	--print("Frame " .. self.frame)
 	local rive_cmds = rive.draw_frame()
 	handle_commands(self, rive_cmds)
 

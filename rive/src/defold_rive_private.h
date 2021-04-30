@@ -32,8 +32,9 @@ namespace rive
 
     enum RiveRenderMode
     {
-        MODE_TESSELLATION     = 0,
-        MODE_STENCIL_TO_COVER = 1,
+        MODE_NONE             = 0,
+        MODE_TESSELLATION     = 1,
+        MODE_STENCIL_TO_COVER = 2,
     };
 
     enum RiveCmdType

@@ -5,27 +5,7 @@ embedded_components {
   "vertices: \"/assets/rive_null.buffer\"\n"
   "primitive_type: PRIMITIVE_TRIANGLES\n"
   "position_stream: \"position\"\n"
-  "normal_stream: \"position\"\n"
-  ""
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-}
-embedded_components {
-  id: "sprite"
-  type: "sprite"
-  data: "tile_set: \"/builtins/graphics/particle_blob.tilesource\"\n"
-  "default_animation: \"anim\"\n"
-  "material: \"/builtins/materials/sprite.material\"\n"
-  "blend_mode: BLEND_MODE_ALPHA\n"
+  "normal_stream: \"normal\"\n"
   ""
   position {
     x: 0.0

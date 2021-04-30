@@ -11,15 +11,17 @@
 
 namespace rive
 {
-    static const dmhash_t VERTEX_STREAM_NAME_POSITION   = dmHashString64("position");
+    static const dmhash_t VERTEX_STREAM_NAME_POSITION = dmHashString64("position");
+    static const dmhash_t VERTEX_STREAM_NAME_NORMAL   = dmHashString64("normal");
 
     static void createDMBuffer(dmBuffer::HBuffer* buffer, uint32_t elementCount, const char* bufferName)
     {
         dmBuffer::StreamDeclaration streams[] = {
-            {VERTEX_STREAM_NAME_POSITION, dmBuffer::VALUE_TYPE_FLOAT32, 2}
+            {VERTEX_STREAM_NAME_POSITION, dmBuffer::VALUE_TYPE_FLOAT32, 2},
+            {VERTEX_STREAM_NAME_NORMAL, dmBuffer::VALUE_TYPE_FLOAT32, 3}
         };
 
-        dmBuffer::Result r = dmBuffer::Create(elementCount, streams, sizeof(streams)/sizeof(dmBuffer::StreamDeclaration), buffer);
+        dmBuffer::Result r = dmBuffer::Create(elementCount, streams, DM_ARRAY_SIZE(streams), buffer);
         if (r != dmBuffer::RESULT_OK)
         {
             dmLogError("Failed to create buffer '%s': %s (%d)",
@@ -27,13 +29,12 @@ namespace rive
         }
     }
 
-    static void getDMBufferPositionStream(dmBuffer::HBuffer buffer, float*& positions)
+    static void getDMBufferPositionStream(dmBuffer::HBuffer buffer, float*& positions, uint32_t& stride)
     {
         uint32_t positions_count;
         uint32_t positions_components;
-        uint32_t positions_stride;
         dmBuffer::Result r = dmBuffer::GetStream(buffer, VERTEX_STREAM_NAME_POSITION,
-            (void**)&positions, &positions_count, &positions_components, &positions_stride);
+            (void**)&positions, &positions_count, &positions_components, &stride);
         if (r != dmBuffer::RESULT_OK)
         {
             dmLogError("Failed to get stream '%s': %s (%d)",
@@ -146,6 +147,8 @@ namespace rive
     : m_Parent(0)
     {
         createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
+
+        dmLogInfo("Creating path (%p):", (uintptr_t) this);
     }
 
     DefoldTessellationRenderPath::~DefoldTessellationRenderPath()
@@ -153,10 +156,17 @@ namespace rive
         dmBuffer::Destroy(m_BufferContour);
     }
 
+    uintptr_t DefoldTessellationRenderPath::getUserData()
+    {
+        return (uintptr_t) MODE_TESSELLATION;
+    }
+
     void DefoldTessellationRenderPath::reset()
     {
         m_Paths.SetCapacity(0);
+        m_Paths.SetSize(0);
         m_PathCommands.SetCapacity(0);
+        m_PathCommands.SetSize(0);
         m_IsDirty = true;
     }
 
@@ -331,7 +341,19 @@ namespace rive
             }
         }
 
-        // dmLogInfo("verticesCount: %d\n", verticesCount);
+        /*
+        if (!didprint)
+        {
+            dmLogInfo("verticesCount: %d\n", m_VertexCount);
+
+            for (int i = 0; i < m_VertexCount; ++i)
+            {
+                dmLogInfo("%f, %f,", m_VertexData[i * 2], m_VertexData[i * 2 + 1]);
+            }
+
+            didprint = true;
+        }
+        */
 
         #undef ADD_VERTEX
         #undef PEN_DOWN
@@ -339,8 +361,6 @@ namespace rive
 
     void DefoldTessellationRenderPath::updateContour(float contourError)
     {
-        // dmLogInfo("num paths in %p : %d", (uintptr_t) this, m_Paths.Size());
-
         if (m_Paths.Size() > 0)
         {
             for (int i=0; i < m_Paths.Size(); i++)
@@ -424,15 +444,34 @@ namespace rive
             const TESSreal*  tessVertices      = tessGetVertices(tess);
             const TESSindex* tessElements      = tessGetElements(tess);
 
-            float* dmPositions = 0;
-            getDMBufferPositionStream(m_BufferContour, dmPositions);
+            float*   dmPositions = 0;
+            uint32_t dmPositionStride = 0;
+            getDMBufferPositionStream(m_BufferContour, dmPositions, dmPositionStride);
+
+            /*
+            if (!didprint)
+            {
+                dmLogInfo("num vertices %d", tessVerticesCount);
+                dmLogInfo("num elements %d", tessElementsCount);
+            }
+            */
 
             for (int i = 0; i < tessElementsCount; ++i)
             {
-                const TESSindex ix              = tessElements[i];
-                dmPositions[i * vertexSize    ] = tessVertices[ ix * vertexSize    ];
-                dmPositions[i * vertexSize + 1] = tessVertices[ ix * vertexSize + 1];
+                const TESSindex ix    = tessElements[i];
+                const uint32_t dmIx   = i * dmPositionStride;
+                dmPositions[dmIx    ] = tessVertices[ix * vertexSize    ];
+                dmPositions[dmIx + 1] = tessVertices[ix * vertexSize + 1];
+
+                /*
+                if (!didprint)
+                {
+                    dmLogInfo("%d : %f, %f,", ix, dmPositions[dmIx], dmPositions[dmIx + 1]);
+                }
+                */
             }
+
+            // didprint = true;
 
             AddCmd({.m_Cmd = CMD_UPDATE_TESSELATION, .m_RenderPath = this});
         }
