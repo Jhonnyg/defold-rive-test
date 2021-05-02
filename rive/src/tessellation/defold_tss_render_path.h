@@ -18,8 +18,6 @@ namespace rive
         uint32_t                m_VertexCount;
         bool                    m_IsDirty;
 
-        bool didprint;
-
         void updateTesselation();
         void updateContour(float contourError);
         void computeContour(float contourError);

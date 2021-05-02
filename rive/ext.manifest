@@ -1,2 +1,12 @@
 # C++ symbol in your extension
 name: "DefoldRiveTest"
+platforms:
+    x86_64-osx:
+        context:
+            excludeLibs: []
+            excludeSymbols: []
+            symbols: []
+            libs: []
+            frameworks: []
+            linkFlags: []
+

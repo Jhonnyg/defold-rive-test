@@ -147,8 +147,6 @@ namespace rive
     : m_Parent(0)
     {
         createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
-
-        dmLogInfo("Creating path (%p):", (uintptr_t) this);
     }
 
     DefoldTessellationRenderPath::~DefoldTessellationRenderPath()
@@ -303,17 +301,14 @@ namespace rive
             switch(pc.m_Command)
             {
                 case TYPE_MOVE:
-                    // dmLogInfo("TYPE_MOVE");
                     penX = pc.m_X;
                     penY = pc.m_Y;
                     break;
                 case TYPE_LINE:
-                    // dmLogInfo("TYPE_LINE");
                     PEN_DOWN()
                     ADD_VERTEX(pc.m_X, pc.m_Y);
                     break;
                 case TYPE_CUBIC:
-                    // dmLogInfo("TYPE_CUBIC");
                     PEN_DOWN()
                     segmentCubic(
                         Vec2D(penX, penY),
@@ -330,7 +325,6 @@ namespace rive
                     penY = pc.m_Y;
                     break;
                 case TYPE_CLOSE:
-                    // dmLogInfo("TYPE_CLOSE");
                     if (isPenDown)
                     {
                         penX      = penDownX;
@@ -340,20 +334,6 @@ namespace rive
                     break;
             }
         }
-
-        /*
-        if (!didprint)
-        {
-            dmLogInfo("verticesCount: %d\n", m_VertexCount);
-
-            for (int i = 0; i < m_VertexCount; ++i)
-            {
-                dmLogInfo("%f, %f,", m_VertexData[i * 2], m_VertexData[i * 2 + 1]);
-            }
-
-            didprint = true;
-        }
-        */
 
         #undef ADD_VERTEX
         #undef PEN_DOWN
@@ -448,30 +428,21 @@ namespace rive
             uint32_t dmPositionStride = 0;
             getDMBufferPositionStream(m_BufferContour, dmPositions, dmPositionStride);
 
-            /*
-            if (!didprint)
-            {
-                dmLogInfo("num vertices %d", tessVerticesCount);
-                dmLogInfo("num elements %d", tessElementsCount);
-            }
-            */
-
+            int dmVx = 0;
             for (int i = 0; i < tessElementsCount; ++i)
             {
-                const TESSindex ix    = tessElements[i];
-                const uint32_t dmIx   = i * dmPositionStride;
-                dmPositions[dmIx    ] = tessVertices[ix * vertexSize    ];
-                dmPositions[dmIx + 1] = tessVertices[ix * vertexSize + 1];
+                const TESSindex* poly = &tessElements[i * polySize];
 
-                /*
-                if (!didprint)
+                for (int j = 0; j < polySize; ++j)
                 {
-                    dmLogInfo("%d : %f, %f,", ix, dmPositions[dmIx], dmPositions[dmIx + 1]);
-                }
-                */
-            }
+                    if (poly[j] == TESS_UNDEF) break;
 
-            // didprint = true;
+                    const TESSreal* vx    = &tessVertices[poly[j]*vertexSize];
+                    dmPositions[dmVx    ] = vx[0];
+                    dmPositions[dmVx + 1] = vx[1];
+                    dmVx                 += dmPositionStride;
+                }
+            }
 
             AddCmd({.m_Cmd = CMD_UPDATE_TESSELATION, .m_RenderPath = this});
         }
