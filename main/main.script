@@ -51,11 +51,13 @@ local function handle_commands(self, rive_cmds)
             local mesh_res = get_mesh_res(self, v.id)
             local path     = rive.get_path(v.id)
 
-            local p = vmath.vector3(path.position[1], path.position[2], 0.001 * v.id)
+            local p = vmath.vector3(path.position[1], path.position[2], 0.01 * v.id)
             local s = vmath.vector3(path.scale[1], path.scale[2], 1)
+            local r = vmath.quat_rotation_z(path.rotation)
 
             go.set_position(p, mesh_go)
             go.set_scale(s, mesh_go)
+            go.set_rotation(r, mesh_go)
 
             local mesh_res = msg.url(nil, self.paths[v.id], "mesh")
             local mesh_buf = self["rive_buffer" .. v.id]

@@ -357,6 +357,10 @@ static int GetPath(lua_State* L)
         lua_settable(L, -3);
     lua_settable(L, -3);
 
+    lua_pushstring(L, "rotation");
+    lua_pushinteger(L, decomposeResult.rotation());
+    lua_settable(L, -3);
+
     return 1;
 }
 
