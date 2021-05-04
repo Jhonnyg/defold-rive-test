@@ -55,6 +55,7 @@ namespace rive
     struct RiveContext
     {
         Artboard*                  m_Artboard;
+        LinearAnimationInstance*   m_ArtboardAnimation;
         dmScript::LuaCallbackInfo* m_Listener;
         dmArray<RiveCmd>           m_Commands;
     };

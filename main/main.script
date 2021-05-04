@@ -3,65 +3,85 @@ go.property("rive_buffer0", resource.buffer("/assets/buffers/rive0.buffer"))
 go.property("rive_buffer1", resource.buffer("/assets/buffers/rive1.buffer"))
 go.property("rive_buffer2", resource.buffer("/assets/buffers/rive2.buffer"))
 go.property("rive_buffer3", resource.buffer("/assets/buffers/rive3.buffer"))
+go.property("rive_buffer4", resource.buffer("/assets/buffers/rive4.buffer"))
+go.property("rive_buffer5", resource.buffer("/assets/buffers/rive5.buffer"))
+go.property("rive_buffer6", resource.buffer("/assets/buffers/rive6.buffer"))
+go.property("rive_buffer7", resource.buffer("/assets/buffers/rive7.buffer"))
+go.property("rive_buffer8", resource.buffer("/assets/buffers/rive8.buffer"))
+go.property("rive_buffer9", resource.buffer("/assets/buffers/rive9.buffer"))
+go.property("rive_buffer10", resource.buffer("/assets/buffers/rive10.buffer"))
+go.property("rive_buffer11", resource.buffer("/assets/buffers/rive11.buffer"))
+go.property("rive_buffer12", resource.buffer("/assets/buffers/rive12.buffer"))
+go.property("rive_buffer13", resource.buffer("/assets/buffers/rive13.buffer"))
+go.property("rive_buffer14", resource.buffer("/assets/buffers/rive14.buffer"))
+go.property("rive_buffer15", resource.buffer("/assets/buffers/rive15.buffer"))
+go.property("rive_buffer16", resource.buffer("/assets/buffers/rive16.buffer"))
+go.property("rive_buffer17", resource.buffer("/assets/buffers/rive17.buffer"))
+go.property("rive_buffer18", resource.buffer("/assets/buffers/rive18.buffer"))
 
 function init(self)
-	rive.init("/Users/jhonny/dev/defold-rive-test/assets/new_file.riv")
-	self.paths = {}
-	self.frame = 0
+    rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/control.riv")
+    -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/marty_v2.riv")
+    self.paths = {}
+    self.frame = 0
 end
 
 local function get_mesh_go(self, id)
-	if self.paths[id] == nil then
-		self.paths[id] = factory.create("#factory")
-	end
-	return self.paths[id]
+    if self.paths[id] == nil then
+        self.paths[id] = factory.create("#factory")
+    end
+    return self.paths[id]
 end
 
 local function get_mesh_res(self, id)
-	local mesh_url = msg.url(nil, self.paths[id], "mesh")
-	return go.get(mesh_url, "vertices")
+    local mesh_url = msg.url(nil, self.paths[id], "mesh")
+    return go.get(mesh_url, "vertices")
 end
 
 local function set_mesh_color(self, id, c)
-	local mesh_url = msg.url(nil, self.paths[id], "mesh")
-	go.set(mesh_url, "uColor", c)
+    local mesh_url = msg.url(nil, self.paths[id], "mesh")
+    go.set(mesh_url, "uColor", c)
 end
 
 local function handle_commands(self, rive_cmds)
-	local dbg_z = 0
-	
-	for _,v in pairs(rive_cmds) do
-		if v.cmd == rive.CMD_UPDATE_TESSELATION then
-			local mesh_go  = get_mesh_go(self, v.id)
-			local mesh_res = get_mesh_res(self, v.id)
-			local path     = rive.get_path(v.id)
+    local unhandled_commands = {}
+    for k,v in pairs(rive_cmds) do
+        if v.cmd == rive.CMD_UPDATE_TESSELATION then
+            local mesh_go  = get_mesh_go(self, v.id)
+            local mesh_res = get_mesh_res(self, v.id)
+            local path     = rive.get_path(v.id)
 
-			local p = vmath.vector3(path.position[1], path.position[2], dbg_z)
-			go.set_position(p, mesh_go)
+            local p = vmath.vector3(path.position[1], path.position[2], 0.001 * v.id)
+            local s = vmath.vector3(path.scale[1], path.scale[2], 1)
 
-			-- hm we should set render order some other way
-			dbg_z = dbg_z + 0.001
+            go.set_position(p, mesh_go)
+            go.set_scale(s, mesh_go)
 
-			local mesh_res = msg.url(nil, self.paths[v.id], "mesh")
-			local mesh_buf = self["rive_buffer" .. v.id]
-			
-			resource.set_buffer(mesh_buf, path.buffer)
+            local mesh_res = msg.url(nil, self.paths[v.id], "mesh")
+            local mesh_buf = self["rive_buffer" .. v.id]
 
-			go.set(mesh_res, "vertices", mesh_buf)
-		elseif v.cmd == rive.CMD_DRAW_PATH then
-			local fill_color = vmath.vector4(v.color[1], v.color[2], v.color[3], v.color[4])
-			get_mesh_go(self, v.id)
-			set_mesh_color(self, v.id, fill_color)
-		end
-	end
+            if mesh_buf == nil then
+                print(v.id .. " has no buffer available")
+            else
+                resource.set_buffer(mesh_buf, path.buffer)
+                go.set(mesh_res, "vertices", mesh_buf)
+            end
+        elseif v.cmd == rive.CMD_DRAW_PATH then
+            local fill_color = vmath.vector4(v.color[1], v.color[2], v.color[3], v.color[4])
+            get_mesh_go(self, v.id)
+            set_mesh_color(self, v.id, fill_color)
+        else
+            unhandled_commands[k] = v
+        end
+    end
+
+    return unhandled_commands
 end
 
 function update(self, dt)
-	self.frame = self.frame + 1
+    local window_width, window_height = window.get_size()
+    local rive_cmds                   = rive.draw_frame(dt, window_width, window_height)
+    rive_cmds                         = handle_commands(self, rive_cmds)
 
-	--print("Frame " .. self.frame)
-	local rive_cmds = rive.draw_frame()
-	handle_commands(self, rive_cmds)
-
-	msg.post ("@render:", "on_rive_update", rive_cmds)
+    msg.post ("@render:", "on_rive_update", rive_cmds)
 end

@@ -2,6 +2,7 @@
 
 #include <artboard.hpp>
 #include <renderer.hpp>
+#include <animation/linear_animation_instance.hpp>
 
 #include <tesselator.h>
 
@@ -178,7 +179,7 @@ namespace rive
             m_Paths.SetCapacity(m_Paths.Capacity() + 1);
         }
 
-        dmLogInfo("ADD_RENDER_PATH %p to %p", (uintptr_t) path, (uintptr_t) this);
+        // dmLogInfo("ADD_RENDER_PATH %p to %p", (uintptr_t) path, (uintptr_t) this);
 
         DefoldTessellationRenderPath* child = (DefoldTessellationRenderPath*) path;
         child->setParent(this);
@@ -198,7 +199,7 @@ namespace rive
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
         }
 
-        dmLogInfo("TYPE_MOVE %p", (uintptr_t) this);
+        // dmLogInfo("TYPE_MOVE %p", (uintptr_t) this);
 
         m_PathCommands.Push({
             .m_Command = TYPE_MOVE,
@@ -214,7 +215,7 @@ namespace rive
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
         }
 
-        dmLogInfo("TYPE_LINE %p", (uintptr_t) this);
+        // dmLogInfo("TYPE_LINE %p", (uintptr_t) this);
 
         m_PathCommands.Push({
             .m_Command = TYPE_LINE,
@@ -230,7 +231,7 @@ namespace rive
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
         }
 
-        dmLogInfo("TYPE_CUBIC %p", (uintptr_t) this);
+        // dmLogInfo("TYPE_CUBIC %p", (uintptr_t) this);
 
         m_PathCommands.Push({
             .m_Command = TYPE_CUBIC,
@@ -250,7 +251,7 @@ namespace rive
             m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
         }
 
-        dmLogInfo("TYPE_CLOSE %p", (uintptr_t) this);
+        // dmLogInfo("TYPE_CLOSE %p", (uintptr_t) this);
 
         m_PathCommands.Push({
             .m_Command = TYPE_CLOSE

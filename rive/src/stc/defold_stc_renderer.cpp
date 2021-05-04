@@ -2,6 +2,7 @@
 #include <artboard.hpp>
 #include <command_path.hpp>
 #include <math/mat2d.hpp>
+#include <animation/linear_animation_instance.hpp><
 
 #include <dmsdk/sdk.h>
 #include "../defold_rive_private.h"

@@ -2,6 +2,7 @@
 #include <artboard.hpp>
 #include <command_path.hpp>
 #include <math/mat2d.hpp>
+#include <animation/linear_animation_instance.hpp>
 
 #include <tesselator.h>
 
@@ -43,7 +44,6 @@ namespace rive
 
         if (m_ClipPathStack.Size() == m_ClipPathStack.Capacity())
         {
-            // use OffsetCapacity
             m_ClipPathStack.OffsetCapacity(1);
         }
 

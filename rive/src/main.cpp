@@ -5,6 +5,7 @@
 #include <artboard.hpp>
 #include <shapes/rectangle.hpp>
 #include <shapes/shape.hpp>
+#include <animation/linear_animation_instance.hpp>
 #include <file.hpp>
 #include <renderer.hpp>
 #include <math/transform_components.hpp>
@@ -183,7 +184,7 @@ static rive::Artboard* LoadArtBoardFromFile(const char* path)
 
     delete[] fileBytes;
 
-    dmLogInfo("Num artboards: %d", file->artboardCount());
+    // dmLogInfo("Num artboards: %d", file->artboardCount());
 
     return file->artboard();
 }
@@ -197,6 +198,13 @@ static int Init(lua_State* L)
     {
         rive::g_Context->m_Artboard = artboard;
         rive::g_Context->m_Artboard->advance(0.0f);
+        rive::g_Context->m_ArtboardAnimation = 0;
+
+        if (rive::g_Context->m_Artboard->animationCount() > 0)
+        {
+            rive::LinearAnimation* a             = rive::g_Context->m_Artboard->firstAnimation();
+            rive::g_Context->m_ArtboardAnimation = new rive::LinearAnimationInstance(a);
+        }
     }
 
     return 0;
@@ -278,6 +286,7 @@ static int PushRiveCmdsToLua(lua_State* L)
                 PushRenderPath(L, cmd.m_RenderPath);
                 PushRenderPaint(L, cmd.m_RenderPaint);
             } break;
+            default:break;
         }
 
         // push new table to index
@@ -328,13 +337,24 @@ static int GetPath(lua_State* L)
     lua_newtable(L);
 
         lua_pushnumber(L, 1);
-        lua_pushinteger(L, decomposeResult.x());
+        lua_pushnumber(L, decomposeResult.x());
         lua_settable(L, -3);
 
         lua_pushnumber(L, 2);
-        lua_pushinteger(L, decomposeResult.y());
+        lua_pushnumber(L, decomposeResult.y());
+        lua_settable(L, -3);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "scale");
+    lua_newtable(L);
+
+        lua_pushnumber(L, 1);
+        lua_pushnumber(L, decomposeResult.scaleX());
         lua_settable(L, -3);
 
+        lua_pushnumber(L, 2);
+        lua_pushnumber(L, decomposeResult.scaleY());
+        lua_settable(L, -3);
     lua_settable(L, -3);
 
     return 1;
@@ -342,21 +362,25 @@ static int GetPath(lua_State* L)
 
 static int DrawFrame(lua_State* L)
 {
-    // Todo: pass these in?
-    float width  = 960.0f;
-    float height = 640.0f;
     float dt     = lua_tonumber(L, 1);
+    float width  = lua_tonumber(L, 2);
+    float height = lua_tonumber(L, 3);
 
     if (rive::g_Context->m_Artboard)
     {
         rive::ClearCommands();
-
         rive::g_Renderer->save();
         rive::g_Renderer->startFrame();
         rive::g_Renderer->align(rive::Fit::contain,
            rive::Alignment::center,
            rive::AABB(0, 0, width, height),
            rive::g_Context->m_Artboard->bounds());
+
+        if (rive::g_Context->m_ArtboardAnimation)
+        {
+            rive::g_Context->m_ArtboardAnimation->advance(dt);
+            rive::g_Context->m_ArtboardAnimation->apply(rive::g_Context->m_Artboard, 1);
+        }
         rive::g_Context->m_Artboard->advance(dt);
         rive::g_Context->m_Artboard->draw(rive::g_Renderer);
         rive::g_Renderer->restore();
@@ -372,32 +396,6 @@ static int GetRenderMode(lua_State* L)
     lua_pushinteger(L, rive::g_RenderMode);
     return 1;
 }
-
-/*
-static int PathStencil(lua_State* L)
-{
-    rive::DefoldRenderPath* rp = (rive::DefoldRenderPath*) lua_touserdata(L, 1);
-    if (rp)
-    {
-        rp->stencil();
-    }
-
-    return 0;
-}
-
-static int PathCover(lua_State* L)
-{
-    rive::DefoldRenderPath* rp = (rive::DefoldRenderPath*) lua_touserdata(L, 1);
-    if (rp)
-    {
-        // todo: use transform from lua
-        rive::Mat2D transform;
-        rp->cover(transform);
-    }
-
-    return 0;
-}
-*/
 
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
