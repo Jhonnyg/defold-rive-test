@@ -42,12 +42,14 @@ namespace rive
         CMD_NONE               = 0,
         CMD_START_FRAME        = 1,
         CMD_UPDATE_TESSELATION = 2,
+        CMD_DRAW_PATH          = 3,
     };
 
     struct RiveCmd
     {
-        RiveCmdType m_Cmd;
-        RenderPath* m_RenderPath;
+        RiveCmdType  m_Cmd;
+        RenderPath*  m_RenderPath;
+        RenderPaint* m_RenderPaint;
     };
 
     struct RiveContext

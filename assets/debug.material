@@ -1,11 +1,21 @@
 name: "sprite"
 tags: "rive"
-vertex_program: "/builtins/materials/sprite.vp"
+vertex_program: "/assets/debug.vp"
 fragment_program: "/assets/debug.fp"
 vertex_space: VERTEX_SPACE_WORLD
 vertex_constants {
   name: "view_proj"
   type: CONSTANT_TYPE_VIEWPROJ
+  value {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 0.0
+  }
+}
+fragment_constants {
+  name: "uColor"
+  type: CONSTANT_TYPE_USER
   value {
     x: 0.0
     y: 0.0

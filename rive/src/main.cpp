@@ -22,6 +22,7 @@
 
 // tesselation
 #include "tessellation/defold_tss_render_path.h"
+#include "tessellation/defold_tss_render_paint.h"
 #include "tessellation/defold_tss_renderer.h"
 
 namespace rive
@@ -38,7 +39,18 @@ namespace rive
     static int32_t              g_PathToIdSeq   = 0;
     static dmArray<PathIdTuple> g_PathToIdTable;
 
-    RenderPaint* makeRenderPaint() { return new DefoldNoOpRenderPaint();  }
+    RenderPaint* makeRenderPaint()
+    {
+        if (g_RenderMode == MODE_TESSELLATION)
+        {
+            return new DefoldTessellationRenderPaint();
+        }
+        else
+        {
+            return new DefoldNoOpRenderPaint();
+        }
+    }
+
     RenderPath* makeRenderPath()
     {
         if (g_RenderMode == MODE_TESSELLATION)
@@ -200,6 +212,42 @@ static int SetListener(lua_State* L)
     return 0;
 }
 
+static void PushRenderPath(lua_State* L, rive::RenderPath* p)
+{
+    int32_t id = rive::GetOrPutPathId(p);
+    lua_pushstring(L, "id");
+    lua_pushinteger(L, id);
+    lua_settable(L, -3);
+}
+
+static void PushRenderPaint(lua_State* L, rive::RenderPaint* rp)
+{
+    float rgba[4];
+    rive::DefoldTessellationRenderPaint* drp = (rive::DefoldTessellationRenderPaint*) rp;
+    drp->getColorArray((float*)rgba);
+
+    lua_pushstring(L, "color");
+    lua_newtable(L);
+
+        lua_pushnumber(L, 1);
+        lua_pushnumber(L, rgba[0]);
+        lua_settable(L, -3);
+
+        lua_pushnumber(L, 2);
+        lua_pushnumber(L, rgba[1]);
+        lua_settable(L, -3);
+
+        lua_pushnumber(L, 3);
+        lua_pushnumber(L, rgba[2]);
+        lua_settable(L, -3);
+
+        lua_pushnumber(L, 4);
+        lua_pushnumber(L, rgba[3]);
+        lua_settable(L, -3);
+
+    lua_settable(L, -3);
+}
+
 static int PushRiveCmdsToLua(lua_State* L)
 {
     lua_newtable(L);
@@ -222,10 +270,13 @@ static int PushRiveCmdsToLua(lua_State* L)
             case rive::CMD_UPDATE_TESSELATION:
             {
                 assert(rive::g_RenderMode == rive::MODE_TESSELLATION);
-
-                lua_pushstring(L, "id");
-                lua_pushinteger(L, rive::GetOrPutPathId(cmd.m_RenderPath));
-                lua_settable(L, -3);
+                PushRenderPath(L, cmd.m_RenderPath);
+            } break;
+            case rive::CMD_DRAW_PATH:
+            {
+                assert(rive::g_RenderMode == rive::MODE_TESSELLATION);
+                PushRenderPath(L, cmd.m_RenderPath);
+                PushRenderPaint(L, cmd.m_RenderPaint);
             } break;
         }
 
@@ -374,6 +425,7 @@ static void LuaInit(lua_State* L)
     REGISTER_RIVE_ENUM(CMD_NONE);
     REGISTER_RIVE_ENUM(CMD_START_FRAME);
     REGISTER_RIVE_ENUM(CMD_UPDATE_TESSELATION);
+    REGISTER_RIVE_ENUM(CMD_DRAW_PATH);
 
     // Register render modes
     REGISTER_RIVE_ENUM(MODE_TESSELLATION);

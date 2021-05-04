@@ -44,7 +44,7 @@ namespace rive
         if (m_ClipPathStack.Size() == m_ClipPathStack.Capacity())
         {
             // use OffsetCapacity
-            m_ClipPathStack.SetCapacity(m_ClipPathStack.Size() + 1);
+            m_ClipPathStack.OffsetCapacity(1);
         }
 
         m_ClipPathStack.Push(entry);
@@ -119,7 +119,10 @@ namespace rive
 
         if (rm == MODE_TESSELLATION)
         {
-            DefoldTessellationRenderPath* p = (DefoldTessellationRenderPath*) path;
+            AddCmd({.m_Cmd         = CMD_DRAW_PATH,
+                    .m_RenderPath  = path,
+                    .m_RenderPaint = paint});
+            DefoldTessellationRenderPath* p   = (DefoldTessellationRenderPath*) path;
             p->drawMesh(m_Transform);
         }
     }
@@ -128,7 +131,7 @@ namespace rive
     {
         if (m_ClipPaths.Size() == m_ClipPaths.Capacity())
         {
-            m_ClipPaths.SetCapacity(m_ClipPaths.Size() + 1);
+            m_ClipPaths.OffsetCapacity(1);
         }
 
         m_ClipPaths.Push({.m_Path = path, .m_Transform = m_Transform});

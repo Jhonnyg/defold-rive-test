@@ -1,4 +1,9 @@
 
+go.property("rive_buffer0", resource.buffer("/assets/buffers/rive0.buffer"))
+go.property("rive_buffer1", resource.buffer("/assets/buffers/rive1.buffer"))
+go.property("rive_buffer2", resource.buffer("/assets/buffers/rive2.buffer"))
+go.property("rive_buffer3", resource.buffer("/assets/buffers/rive3.buffer"))
+
 function init(self)
 	rive.init("/Users/jhonny/dev/defold-rive-test/assets/new_file.riv")
 	self.paths = {}
@@ -17,26 +22,38 @@ local function get_mesh_res(self, id)
 	return go.get(mesh_url, "vertices")
 end
 
-local function handle_commands(self, rive_cmds)
-	-- temp, remove later
-	if self.uploaded_once then
-		return
-	end
+local function set_mesh_color(self, id, c)
+	local mesh_url = msg.url(nil, self.paths[id], "mesh")
+	go.set(mesh_url, "uColor", c)
+end
 
+local function handle_commands(self, rive_cmds)
+	local dbg_z = 0
+	
 	for _,v in pairs(rive_cmds) do
-		if _ == 4 and v.cmd == rive.CMD_UPDATE_TESSELATION then
+		if v.cmd == rive.CMD_UPDATE_TESSELATION then
 			local mesh_go  = get_mesh_go(self, v.id)
 			local mesh_res = get_mesh_res(self, v.id)
 			local path     = rive.get_path(v.id)
 
-			local p = vmath.vector3(path.position[1], path.position[2], 0)
+			local p = vmath.vector3(path.position[1], path.position[2], dbg_z)
 			go.set_position(p, mesh_go)
 
-			resource.set_buffer(mesh_res, path.buffer)
+			-- hm we should set render order some other way
+			dbg_z = dbg_z + 0.001
+
+			local mesh_res = msg.url(nil, self.paths[v.id], "mesh")
+			local mesh_buf = self["rive_buffer" .. v.id]
+			
+			resource.set_buffer(mesh_buf, path.buffer)
+
+			go.set(mesh_res, "vertices", mesh_buf)
+		elseif v.cmd == rive.CMD_DRAW_PATH then
+			local fill_color = vmath.vector4(v.color[1], v.color[2], v.color[3], v.color[4])
+			get_mesh_go(self, v.id)
+			set_mesh_color(self, v.id, fill_color)
 		end
 	end
-
-	self.uploaded_once = true
 end
 
 function update(self, dt)

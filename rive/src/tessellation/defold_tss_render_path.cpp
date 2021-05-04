@@ -8,6 +8,7 @@
 #include <dmsdk/sdk.h>
 #include "../defold_rive_private.h"
 #include "defold_tss_render_path.h"
+#include "defold_tss_render_paint.h"
 
 namespace rive
 {
@@ -18,7 +19,7 @@ namespace rive
     {
         dmBuffer::StreamDeclaration streams[] = {
             {VERTEX_STREAM_NAME_POSITION, dmBuffer::VALUE_TYPE_FLOAT32, 2},
-            {VERTEX_STREAM_NAME_NORMAL, dmBuffer::VALUE_TYPE_FLOAT32, 3}
+            {VERTEX_STREAM_NAME_NORMAL, dmBuffer::VALUE_TYPE_FLOAT32, 3},
         };
 
         dmBuffer::Result r = dmBuffer::Create(elementCount, streams, DM_ARRAY_SIZE(streams), buffer);
@@ -29,16 +30,16 @@ namespace rive
         }
     }
 
-    static void getDMBufferPositionStream(dmBuffer::HBuffer buffer, float*& positions, uint32_t& stride)
+    static void getDMBufferStream(dmBuffer::HBuffer buffer, dmhash_t streamHash, float*& stream, uint32_t& stride)
     {
-        uint32_t positions_count;
-        uint32_t positions_components;
-        dmBuffer::Result r = dmBuffer::GetStream(buffer, VERTEX_STREAM_NAME_POSITION,
-            (void**)&positions, &positions_count, &positions_components, &stride);
+        uint32_t count;
+        uint32_t components;
+        dmBuffer::Result r = dmBuffer::GetStream(buffer, streamHash,
+            (void**)&stream, &count, &components, &stride);
         if (r != dmBuffer::RESULT_OK)
         {
             dmLogError("Failed to get stream '%s': %s (%d)",
-                dmHashReverseSafe64(VERTEX_STREAM_NAME_POSITION),
+                dmHashReverseSafe64(streamHash),
                 dmBuffer::GetResultString(r), r);
             return;
         }
@@ -426,7 +427,7 @@ namespace rive
 
             float*   dmPositions = 0;
             uint32_t dmPositionStride = 0;
-            getDMBufferPositionStream(m_BufferContour, dmPositions, dmPositionStride);
+            getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_POSITION, dmPositions, dmPositionStride);
 
             int dmVx = 0;
             for (int i = 0; i < tessElementsCount; ++i)

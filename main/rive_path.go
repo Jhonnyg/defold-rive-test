@@ -2,7 +2,7 @@ embedded_components {
   id: "mesh"
   type: "mesh"
   data: "material: \"/assets/debug.material\"\n"
-  "vertices: \"/assets/rive_null.buffer\"\n"
+  "vertices: \"/assets/buffers/rive0.buffer\"\n"
   "primitive_type: PRIMITIVE_TRIANGLES\n"
   "position_stream: \"position\"\n"
   "normal_stream: \"normal\"\n"
