@@ -19,6 +19,7 @@ namespace rive
         dmArray<PathDescriptor> m_ClipPaths;
         dmArray<PathDescriptor> m_AppliedClips;
         Mat2D                   m_Transform;
+        uint32_t                m_DrawIndex;
 
         void applyClipping();
         void printStack(const char* label);

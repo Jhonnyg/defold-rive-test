@@ -149,6 +149,7 @@ namespace rive
     : m_Parent(0)
     , m_IsDirty(true)
     , m_IsShapeDirty(true)
+    , m_DrawIndex(0xffffffff)
     {
         createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
     }
@@ -179,7 +180,7 @@ namespace rive
 
         if (m_Paths.Size() == m_Paths.Capacity())
         {
-            m_Paths.SetCapacity(m_Paths.Capacity() + 1);
+            m_Paths.OffsetCapacity(1);
         }
 
         // dmLogInfo("ADD_RENDER_PATH %p to %p", (uintptr_t) path, (uintptr_t) this);
@@ -188,6 +189,23 @@ namespace rive
         child->setParent(this);
 
         m_Paths.Push(desc);
+    }
+
+    void DefoldTessellationRenderPath::setDrawIndex(uint32_t* drawIndex)
+    {
+        if (*drawIndex != m_DrawIndex)
+        {
+            AddCmd({.m_Cmd = CMD_UPDATE_DRAW_INDEX, .m_RenderPath = this});
+        }
+
+        m_DrawIndex = *drawIndex;
+        *drawIndex += 1;
+
+        for (int i = 0; i < m_Paths.Size(); ++i)
+        {
+            DefoldTessellationRenderPath* child = (DefoldTessellationRenderPath*) m_Paths[i].m_Path;
+            child->setDrawIndex(drawIndex);
+        }
     }
 
     void DefoldTessellationRenderPath::fillRule(FillRule value)
@@ -199,7 +217,7 @@ namespace rive
     {
         if (m_PathCommands.Size() == m_PathCommands.Capacity())
         {
-            m_PathCommands.SetCapacity(m_PathCommands.Capacity() + 1);
+            m_PathCommands.OffsetCapacity(1);
         }
 
         // dmLogInfo("TYPE_MOVE %p", (uintptr_t) this);

@@ -113,17 +113,22 @@ namespace rive
 
     void DefoldTessellationRenderer::drawPath(RenderPath* path, RenderPaint* paint)
     {
-        applyClipping();
-
         const RiveRenderMode rm = (RiveRenderMode) path->getUserData();
-
         if (rm == MODE_TESSELLATION)
         {
+            DefoldTessellationRenderPath* p = (DefoldTessellationRenderPath*) path;
+            p->setDrawIndex(&m_DrawIndex);
+            applyClipping();
+
             AddCmd({.m_Cmd         = CMD_DRAW_PATH,
                     .m_RenderPath  = path,
                     .m_RenderPaint = paint});
-            DefoldTessellationRenderPath* p   = (DefoldTessellationRenderPath*) path;
+
             p->drawMesh(m_Transform);
+        }
+        else
+        {
+            applyClipping();
         }
     }
 
@@ -140,5 +145,6 @@ namespace rive
     void DefoldTessellationRenderer::startFrame()
     {
         m_AppliedClips.SetSize(0);
+        m_DrawIndex = 0;
     }
 }

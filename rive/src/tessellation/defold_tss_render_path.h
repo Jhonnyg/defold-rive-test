@@ -16,6 +16,7 @@ namespace rive
         Mat2D                   m_Transform;
         FillRule                m_FillRule;
         uint32_t                m_VertexCount;
+        uint32_t                m_DrawIndex;
         bool                    m_IsDirty;
         bool                    m_IsShapeDirty;
 
@@ -27,16 +28,18 @@ namespace rive
     public:
         DefoldTessellationRenderPath();
         ~DefoldTessellationRenderPath();
-        void reset()                                                           override;
-        void addRenderPath(RenderPath* path, const Mat2D& transform)           override;
-        void fillRule(FillRule value)                                          override;
-        void moveTo(float x, float y)                                          override;
-        void lineTo(float x, float y)                                          override;
-        void cubicTo(float ox, float oy, float ix, float iy, float x, float y) override;
+        void         reset()                                                           override;
+        void         addRenderPath(RenderPath* path, const Mat2D& transform)           override;
+        void         fillRule(FillRule value)                                          override;
+        void         moveTo(float x, float y)                                          override;
+        void         lineTo(float x, float y)                                          override;
+        void         cubicTo(float ox, float oy, float ix, float iy, float x, float y) override;
         virtual void close()                                                   override;
-        void drawMesh(const Mat2D& transform);
-        uintptr_t getUserData();
+        void         drawMesh(const Mat2D& transform);
+        uintptr_t    getUserData();
+        void         setDrawIndex(uint32_t* drawIndex);
 
+        inline const uint32_t          getDrawIndex()           { return m_DrawIndex; }
         inline const Mat2D             getTransform()           { return m_Transform; }
         inline const dmBuffer::HBuffer getContourBuffer()       { return m_BufferContour; }
         inline RenderPath*             getParent()              { return m_Parent; }

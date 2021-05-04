@@ -286,6 +286,11 @@ static int PushRiveCmdsToLua(lua_State* L)
                 PushRenderPath(L, cmd.m_RenderPath);
                 PushRenderPaint(L, cmd.m_RenderPaint);
             } break;
+            case rive::CMD_UPDATE_DRAW_INDEX:
+            {
+                assert(rive::g_RenderMode == rive::MODE_TESSELLATION);
+                PushRenderPath(L, cmd.m_RenderPath);
+            }
             default:break;
         }
 
@@ -358,7 +363,11 @@ static int GetPath(lua_State* L)
     lua_settable(L, -3);
 
     lua_pushstring(L, "rotation");
-    lua_pushinteger(L, decomposeResult.rotation());
+    lua_pushnumber(L, decomposeResult.rotation());
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "draw_index");
+    lua_pushinteger(L, tesselationPath->getDrawIndex());
     lua_settable(L, -3);
 
     return 1;
@@ -428,6 +437,7 @@ static void LuaInit(lua_State* L)
     REGISTER_RIVE_ENUM(CMD_START_FRAME);
     REGISTER_RIVE_ENUM(CMD_UPDATE_TESSELATION);
     REGISTER_RIVE_ENUM(CMD_DRAW_PATH);
+    REGISTER_RIVE_ENUM(CMD_UPDATE_DRAW_INDEX);
 
     // Register render modes
     REGISTER_RIVE_ENUM(MODE_TESSELLATION);

@@ -19,28 +19,51 @@ go.property("rive_buffer16", resource.buffer("/assets/buffers/rive16.buffer"))
 go.property("rive_buffer17", resource.buffer("/assets/buffers/rive17.buffer"))
 go.property("rive_buffer18", resource.buffer("/assets/buffers/rive18.buffer"))
 
+local buffer_pool =
+{
+    free = {},
+    push = function(self, b) table.insert(self.free, b) end,
+    pop = function(self) return table.remove(self.free, 1) end,
+    empty = function(self) return #self.free == 0 end
+}
+
 function init(self)
     rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/control.riv")
     -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/marty_v2.riv")
     self.paths = {}
     self.frame = 0
+
+    for i=0,18 do
+        buffer_pool:push(self["rive_buffer" .. i])
+    end
 end
 
 local function get_mesh_go(self, id)
     if self.paths[id] == nil then
-        self.paths[id] = factory.create("#factory")
+        local b = nil
+        if buffer_pool:empty() then
+            print("Buffer pool full, can't assign buffer for " .. id)
+        else
+            b = buffer_pool:pop()
+        end
+
+        self.paths[id] = { go = factory.create("#factory"), buffer = b}
     end
-    return self.paths[id]
+    return self.paths[id].go
 end
 
 local function get_mesh_res(self, id)
-    local mesh_url = msg.url(nil, self.paths[id], "mesh")
+    local mesh_url = msg.url(nil, self.paths[id].go, "mesh")
     return go.get(mesh_url, "vertices")
 end
 
 local function set_mesh_color(self, id, c)
-    local mesh_url = msg.url(nil, self.paths[id], "mesh")
+    local mesh_url = msg.url(nil, self.paths[id].go, "mesh")
     go.set(mesh_url, "uColor", c)
+end
+
+local function get_mesh_buffer(self, id)
+    return self.paths[id].buffer
 end
 
 local function handle_commands(self, rive_cmds)
@@ -51,23 +74,34 @@ local function handle_commands(self, rive_cmds)
             local mesh_res = get_mesh_res(self, v.id)
             local path     = rive.get_path(v.id)
 
-            local p = vmath.vector3(path.position[1], path.position[2], 0.01 * v.id)
+            local p = vmath.vector3(path.position[1], path.position[2], v.id * 0.01) --0.01 * path.draw_index)
             local s = vmath.vector3(path.scale[1], path.scale[2], 1)
             local r = vmath.quat_rotation_z(path.rotation)
+
+            -- pprint(v.id .. " has updated tessellation")
 
             go.set_position(p, mesh_go)
             go.set_scale(s, mesh_go)
             go.set_rotation(r, mesh_go)
 
-            local mesh_res = msg.url(nil, self.paths[v.id], "mesh")
-            local mesh_buf = self["rive_buffer" .. v.id]
- 
-            if mesh_buf == nil then
-                print(v.id .. " has no buffer available")
-            else
+            local mesh_res = msg.url(nil, self.paths[v.id].go, "mesh")
+            local mesh_buf = get_mesh_buffer(self, v.id) -- self["rive_buffer" .. v.id]
+
+            if mesh_buf ~= nil then
                 resource.set_buffer(mesh_buf, path.buffer)
                 go.set(mesh_res, "vertices", mesh_buf)
             end
+        elseif v.cmd == rive.CMD_UPDATE_DRAW_INDEX then
+            --[[
+            local path = rive.get_path(v.id)
+            -- print(v.id .. " has new draw index " .. path.draw_index)
+            if self.paths[id] ~= nil and self.paths[id].buffer then
+                local g = self.paths[v.id]
+                local p = go.get_position(g)
+                p.z = 0.01 * path.draw_index
+                go.set_position(p, g)
+            end
+            --]]
         elseif v.cmd == rive.CMD_DRAW_PATH then
             local fill_color = vmath.vector4(v.color[1], v.color[2], v.color[3], v.color[4])
             get_mesh_go(self, v.id)
@@ -84,6 +118,5 @@ function update(self, dt)
     local window_width, window_height = window.get_size()
     local rive_cmds                   = rive.draw_frame(dt, window_width, window_height)
     rive_cmds                         = handle_commands(self, rive_cmds)
-
     msg.post ("@render:", "on_rive_update", rive_cmds)
 end

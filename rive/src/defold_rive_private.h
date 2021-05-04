@@ -43,6 +43,7 @@ namespace rive
         CMD_START_FRAME        = 1,
         CMD_UPDATE_TESSELATION = 2,
         CMD_DRAW_PATH          = 3,
+        CMD_UPDATE_DRAW_INDEX  = 4,
     };
 
     struct RiveCmd
