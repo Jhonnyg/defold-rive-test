@@ -106,7 +106,7 @@ namespace rive
 
         if (ctx->m_Commands.Size() == ctx->m_Commands.Capacity())
         {
-            ctx->m_Commands.SetCapacity(ctx->m_Commands.Size() + 1);
+            ctx->m_Commands.OffsetCapacity(1);
         }
 
         ctx->m_Commands.Push(cmd);
@@ -127,7 +127,7 @@ namespace rive
 
         if (g_PathToIdTable.Size() == g_PathToIdTable.Capacity())
         {
-            g_PathToIdTable.SetCapacity(g_PathToIdTable.Size() + 1);
+            g_PathToIdTable.OffsetCapacity(1);
         }
 
         g_PathToIdTable.Push({

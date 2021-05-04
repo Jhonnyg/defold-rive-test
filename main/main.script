@@ -61,7 +61,7 @@ local function handle_commands(self, rive_cmds)
 
             local mesh_res = msg.url(nil, self.paths[v.id], "mesh")
             local mesh_buf = self["rive_buffer" .. v.id]
-
+ 
             if mesh_buf == nil then
                 print(v.id .. " has no buffer available")
             else

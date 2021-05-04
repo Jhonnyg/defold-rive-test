@@ -17,11 +17,13 @@ namespace rive
         FillRule                m_FillRule;
         uint32_t                m_VertexCount;
         bool                    m_IsDirty;
+        bool                    m_IsShapeDirty;
 
         void updateTesselation();
         void updateContour(float contourError);
         void computeContour(float contourError);
         void addContours(TESStesselator* tess, const Mat2D& m);
+        bool isShapeDirty();
     public:
         DefoldTessellationRenderPath();
         ~DefoldTessellationRenderPath();

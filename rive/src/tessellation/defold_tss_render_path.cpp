@@ -147,6 +147,8 @@ namespace rive
 
     DefoldTessellationRenderPath::DefoldTessellationRenderPath()
     : m_Parent(0)
+    , m_IsDirty(true)
+    , m_IsShapeDirty(true)
     {
         createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
     }
@@ -168,6 +170,7 @@ namespace rive
         m_PathCommands.SetCapacity(0);
         m_PathCommands.SetSize(0);
         m_IsDirty = true;
+        m_IsShapeDirty = true;
     }
 
     void DefoldTessellationRenderPath::addRenderPath(RenderPath* path, const Mat2D& transform)
@@ -263,6 +266,8 @@ namespace rive
         const float minSegmentLength = contourError * contourError;
         const float distTooFar       = contourError;
 
+        m_IsDirty  = false;
+
         float minX = FLT_MAX;
         float minY = FLT_MAX;
         float maxX = -FLT_MAX;
@@ -352,12 +357,16 @@ namespace rive
             }
         }
 
-        // todo: dirty state
-        computeContour(contourError);
+        if (m_IsDirty)
+        {
+            computeContour(contourError);
+        }
     }
 
     void DefoldTessellationRenderPath::addContours(TESStesselator* tess, const Mat2D& m)
     {
+        m_IsShapeDirty = false;
+
         if (m_Paths.Size() > 0)
         {
             for (int i = 0; i < m_Paths.Size(); ++i)
@@ -399,6 +408,30 @@ namespace rive
         }
     }
 
+    bool DefoldTessellationRenderPath::isShapeDirty()
+    {
+        bool dirty = m_IsShapeDirty;
+        if (dirty)
+        {
+            return true;
+        }
+
+        if (m_Paths.Size() > 0)
+        {
+            for (int i = 0; i < m_Paths.Size(); ++i)
+            {
+                DefoldTessellationRenderPath* asDefoldPath = (DefoldTessellationRenderPath*) m_Paths[i].m_Path;
+                if (asDefoldPath->isShapeDirty())
+                {
+                    dirty = true;
+                    break;
+                }
+            }
+        }
+
+        return dirty;
+    }
+
     void DefoldTessellationRenderPath::updateTesselation()
     {
         const float contourQuality  = 0.8888888888888889f;
@@ -407,6 +440,11 @@ namespace rive
         const float contourError    = minContourError * contourQuality + maxContourError * (1.0f - contourQuality);
 
         updateContour(contourError);
+
+        if (!isShapeDirty())
+        {
+            return;
+        }
 
         // TODO: custom memory management here + move globally or something else
         TESStesselator* tess = tessNewTess(0);
