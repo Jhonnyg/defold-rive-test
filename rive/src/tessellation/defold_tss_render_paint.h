@@ -45,11 +45,13 @@ namespace rive
     private:
         DefoldTessellationRenderPaintBuilder* m_Builder;
         DefoldTessellationRenderPaintData     m_Data;
+        RenderPaintStyle                      m_Style;
+        bool                                  m_IsVisible;
 
     public:
         DefoldTessellationRenderPaint();
         void color(unsigned int value)                              override;
-        void style(RenderPaintStyle value)                          override {}
+        void style(RenderPaintStyle value)                          override { m_Style = value; }
         void thickness(float value)                                 override {}
         void join(StrokeJoin value)                                 override {}
         void cap(StrokeCap value)                                   override {}
@@ -58,7 +60,9 @@ namespace rive
         void radialGradient(float sx, float sy, float ex, float ey) override;
         void addStop(unsigned int color, float stop)                override;
         void completeGradient()                                     override;
-        inline DefoldTessellationRenderPaintData getData() { return m_Data; }
+        inline DefoldTessellationRenderPaintData getData()   { return m_Data; }
+        inline RenderPaintStyle                  getStyle()  { return m_Style; }
+        inline bool                              isVisible() { return m_IsVisible; }
     };
 }
 

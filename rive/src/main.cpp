@@ -274,11 +274,11 @@ static void PushRenderPaint(lua_State* L, rive::RenderPaint* rp)
             lua_settable(L, -3);
 
             lua_pushnumber(L, 2);
-            lua_pushnumber(L, data.m_GradientLimits[1]); // ex
+            lua_pushnumber(L, data.m_GradientLimits[1]); // sy
             lua_settable(L, -3);
 
             lua_pushnumber(L, 3);
-            lua_pushnumber(L, data.m_GradientLimits[2]); // sy
+            lua_pushnumber(L, data.m_GradientLimits[2]); // ex
             lua_settable(L, -3);
 
             lua_pushnumber(L, 4);

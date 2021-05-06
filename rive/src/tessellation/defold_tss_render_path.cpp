@@ -15,12 +15,14 @@ namespace rive
 {
     static const dmhash_t VERTEX_STREAM_NAME_POSITION = dmHashString64("position");
     static const dmhash_t VERTEX_STREAM_NAME_NORMAL   = dmHashString64("normal");
+    static const dmhash_t VERTEX_STREAM_NAME_UV0      = dmHashString64("uv");
 
     static void createDMBuffer(dmBuffer::HBuffer* buffer, uint32_t elementCount, const char* bufferName)
     {
         dmBuffer::StreamDeclaration streams[] = {
             {VERTEX_STREAM_NAME_POSITION, dmBuffer::VALUE_TYPE_FLOAT32, 2},
             {VERTEX_STREAM_NAME_NORMAL, dmBuffer::VALUE_TYPE_FLOAT32, 3},
+            {VERTEX_STREAM_NAME_UV0, dmBuffer::VALUE_TYPE_FLOAT32, 2},
         };
 
         dmBuffer::Result r = dmBuffer::Create(elementCount, streams, DM_ARRAY_SIZE(streams), buffer);
@@ -488,7 +490,12 @@ namespace rive
             uint32_t dmPositionStride = 0;
             getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_POSITION, dmPositions, dmPositionStride);
 
+            float*   dmUv0 = 0;
+            uint32_t dmUv0Stride = 0;
+            getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_UV0, dmUv0, dmUv0Stride);
+
             int dmVx = 0;
+            int dmUvx = 0;
             for (int i = 0; i < tessElementsCount; ++i)
             {
                 const TESSindex* poly = &tessElements[i * polySize];
@@ -500,6 +507,9 @@ namespace rive
                     const TESSreal* vx    = &tessVertices[poly[j]*vertexSize];
                     dmPositions[dmVx    ] = vx[0];
                     dmPositions[dmVx + 1] = vx[1];
+                    dmUv0[dmUvx    ]      = vx[0];
+                    dmUv0[dmUvx + 1]      = vx[1];
+                    dmUvx                += dmUv0Stride;
                     dmVx                 += dmPositionStride;
                 }
             }

@@ -27,6 +27,8 @@ namespace rive
         };
 
         getColorArrayFromUint(value, &m_Data.m_Colors[0]);
+
+        m_IsVisible = m_Data.m_Colors[3] > 0.0f;
     }
 
     void DefoldTessellationRenderPaint::linearGradient(float sx, float sy, float ex, float ey)
@@ -69,16 +71,22 @@ namespace rive
         m_Data.m_StopCount = m_Builder->m_Stops.Size();
 
         m_Data.m_GradientLimits[0] = m_Builder->m_StartX;
-        m_Data.m_GradientLimits[1] = m_Builder->m_EndX;
-        m_Data.m_GradientLimits[2] = m_Builder->m_StartY;
+        m_Data.m_GradientLimits[1] = m_Builder->m_StartY;
+        m_Data.m_GradientLimits[2] = m_Builder->m_EndX;
         m_Data.m_GradientLimits[3] = m_Builder->m_EndY;
 
+        m_IsVisible = false;
         assert(m_Data.m_StopCount < DefoldTessellationRenderPaintData::MAX_STOPS);
         for (int i = 0; i < m_Builder->m_Stops.Size(); ++i)
         {
             const GradientStop& stop = m_Builder->m_Stops[i];
             getColorArrayFromUint(stop.m_Color, &m_Data.m_Colors[i * 4]);
             m_Data.m_Stops[i] = stop.m_Stop;
+
+            if (m_Data.m_Colors[i*4 + 3] > 0.0f)
+            {
+                m_IsVisible = true;
+            }
         }
 
         m_Builder->m_Stops.SetSize(0);

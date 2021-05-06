@@ -10,6 +10,7 @@
 #include "../defold_rive_private.h"
 #include "defold_tss_renderer.h"
 #include "defold_tss_render_path.h"
+#include "defold_tss_render_paint.h"
 
 namespace rive
 {
@@ -116,7 +117,14 @@ namespace rive
         const RiveRenderMode rm = (RiveRenderMode) path->getUserData();
         if (rm == MODE_TESSELLATION)
         {
-            DefoldTessellationRenderPath* p = (DefoldTessellationRenderPath*) path;
+            DefoldTessellationRenderPath*   p = (DefoldTessellationRenderPath*) path;
+            DefoldTessellationRenderPaint* rp = (DefoldTessellationRenderPaint*) paint;
+
+            if (rp->getStyle() != RenderPaintStyle::fill || !rp->isVisible())
+            {
+                return;
+            }
+
             p->setDrawIndex(&m_DrawIndex);
             applyClipping();
 

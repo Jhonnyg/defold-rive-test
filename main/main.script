@@ -18,6 +18,12 @@ go.property("rive_buffer15", resource.buffer("/assets/buffers/rive15.buffer"))
 go.property("rive_buffer16", resource.buffer("/assets/buffers/rive16.buffer"))
 go.property("rive_buffer17", resource.buffer("/assets/buffers/rive17.buffer"))
 go.property("rive_buffer18", resource.buffer("/assets/buffers/rive18.buffer"))
+go.property("rive_buffer19", resource.buffer("/assets/buffers/rive19.buffer"))
+go.property("rive_buffer20", resource.buffer("/assets/buffers/rive20.buffer"))
+go.property("rive_buffer21", resource.buffer("/assets/buffers/rive21.buffer"))
+go.property("rive_buffer22", resource.buffer("/assets/buffers/rive22.buffer"))
+go.property("rive_buffer23", resource.buffer("/assets/buffers/rive23.buffer"))
+go.property("rive_buffer24", resource.buffer("/assets/buffers/rive24.buffer"))
 
 local buffer_pool =
 {
@@ -28,7 +34,9 @@ local buffer_pool =
 }
 
 function init(self)
-    rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/gradient_test.riv")
+    rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/control.riv")
+    -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/juice.riv")
+    -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/gradient_test.riv")
     -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/marty_v2.riv")
     self.paths = {}
     self.frame = 0
@@ -54,6 +62,11 @@ local function handle_paint(self, cmd, obj)
     local paint     = cmd.paint
     local num_stops = 0
 
+    local function set_gradient(ix, data)
+        local v = vmath.vector4(data[1],data[2],data[3],data[4])
+        go.set(obj, "uGradientStop" .. ix, v)
+    end
+
     if paint.type == rive.FILL_TYPE_SOLID then
         local c  = vmath.vector4(paint.color[1], paint.color[2], paint.color[3], paint.color[4])
         go.set(obj, "uSolidColor", c)
@@ -73,16 +86,15 @@ local function handle_paint(self, cmd, obj)
             if ix == 0 then
 
                 if stop_buffer then
-                    go.set(obj, "uGradientStop" .. (stop_buffer_count-1), vmath.vector4(stop_buffer[1],stop_buffer[2],stop_buffer[3],stop_buffer[4]))
+                    set_gradient(stop_buffer_count-1, stop_buffer)
                 end
 
                 stop_buffer_count = stop_buffer_count + 1
                 stop_buffer = {0,0,0,0}
             end
-
             stop_buffer[ix + 1] = v
         end
-        go.set(obj, "uGradientStop" .. (stop_buffer_count-1), vmath.vector4(stop_buffer[1],stop_buffer[2],stop_buffer[3],stop_buffer[4]))
+        set_gradient(stop_buffer_count-1, stop_buffer)
     end
 
     go.set(obj, "uFillData", vmath.vector4(paint.type, num_stops, 0, 0))
@@ -120,9 +132,10 @@ local function handle_commands(self, cmds)
         local rive_buf  = rive_obj.buffer
         local rive_path = rive.get_path(v.id)
         local rive_mesh = msg.url(nil, rive_go, "mesh")
-
-        go.set(rive_mesh, "vertices", rive_buf)
-        resource.set_buffer(rive_buf, rive_path.buffer)
+        if rive_buf then
+            go.set(rive_mesh, "vertices", rive_buf)
+            resource.set_buffer(rive_buf, rive_path.buffer)
+        end
     end
 end
 

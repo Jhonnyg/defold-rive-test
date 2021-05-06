@@ -6,8 +6,9 @@ render = /render/example.renderc
 shared_state = 1
 
 [display]
-width = 960
-height = 640
+width = 500
+height = 500
+high_dpi = 1
 
 [project]
 title = defold-rive-test

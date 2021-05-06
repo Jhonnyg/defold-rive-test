@@ -1,9 +1,12 @@
 uniform highp mat4 view_proj;
+uniform highp mat4 world;
+uniform highp mat4 world_view_proj;
 attribute highp vec4 position;
+attribute highp vec2 uv;
 varying mediump vec2 vPosition;
 
 void main()
 {
     gl_Position = view_proj * vec4(position.xyz, 1.0);
-    vPosition = position.xy;
+    vPosition = uv.xy;
 }

@@ -73,7 +73,7 @@ function update(self, dt)
     render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
     render.disable_state(render.STATE_CULL_FACE)
 
-    local rive_projection = vmath.matrix4_orthographic(0, render.get_width(), render.get_height(), 0, 0, 1)
+    local rive_projection = vmath.matrix4_orthographic(0, render.get_width() * 2, render.get_height() * 2, 0, 0, 1)
     render.set_projection(rive_projection)
 
     render.draw(self.rive_pred)

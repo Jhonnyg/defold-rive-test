@@ -89,8 +89,27 @@ void main()
         vec2 toEnd          = end - start;
         float lengthSquared = toEnd.x * toEnd.x + toEnd.y * toEnd.y;
         float f             = dot(vPosition - start, toEnd) / lengthSquared;
-        vec4 color          = mix(uGradientColor0, uGradientColor1, smoothstep(uGradientStop0.x, uGradientStop0.y, f));
+        vec4 color          = mix(uGradientColor0, uGradientColor1,
+            smoothstep(uGradientStop0.x, uGradientStop0.y, f));
 
+        for (int i=1; i < MAX_STOPS; ++i)
+        {
+            if(i >= stopCount-1)
+            {
+                break;
+            }
+            color = mix(color, getColor(i+1), smoothstep( getStop(i), getStop(i+1), f ));
+        }
+
+        gl_FragColor = vec4(color.xyz * color.w, color.w);
+    }
+    else if (fillType == FILL_TYPE_RADIAL)
+    {
+        vec2 start = uGradientLimits.xy;
+        vec2 end   = uGradientLimits.zw;
+        float f    = distance(start, vPosition)/distance(start, end);
+        vec4 color = mix(uGradientColor0, uGradientColor1,
+            smoothstep(uGradientStop0.x, uGradientStop0.y, f));
         for (int i=1; i < MAX_STOPS; ++i)
         {
             if(i >= stopCount-1)
