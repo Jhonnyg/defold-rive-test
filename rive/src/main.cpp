@@ -232,27 +232,100 @@ static void PushRenderPaint(lua_State* L, rive::RenderPaint* rp)
 {
     float rgba[4];
     rive::DefoldTessellationRenderPaint* drp = (rive::DefoldTessellationRenderPaint*) rp;
-    drp->getColorArray((float*)rgba);
+    const rive::DefoldTessellationRenderPaintData data = drp->getData();
 
-    lua_pushstring(L, "color");
+    lua_pushstring(L, "paint");
     lua_newtable(L);
 
-        lua_pushnumber(L, 1);
-        lua_pushnumber(L, rgba[0]);
+    lua_pushstring(L, "type");
+    lua_pushinteger(L, data.m_FillType);
+    lua_settable(L, -3);
+
+    if (data.m_FillType == rive::FILL_TYPE_SOLID)
+    {
+        lua_pushstring(L, "color");
+        lua_newtable(L);
+
+            lua_pushnumber(L, 1);
+            lua_pushnumber(L, data.m_Colors[0]);
+            lua_settable(L, -3);
+
+            lua_pushnumber(L, 2);
+            lua_pushnumber(L, data.m_Colors[1]);
+            lua_settable(L, -3);
+
+            lua_pushnumber(L, 3);
+            lua_pushnumber(L, data.m_Colors[2]);
+            lua_settable(L, -3);
+
+            lua_pushnumber(L, 4);
+            lua_pushnumber(L, data.m_Colors[3]);
+            lua_settable(L, -3);
+
+        lua_settable(L, -3);
+    }
+    else
+    {
+        lua_pushstring(L, "limits");
+        lua_newtable(L);
+
+            lua_pushnumber(L, 1);
+            lua_pushnumber(L, data.m_GradientLimits[0]); // sx
+            lua_settable(L, -3);
+
+            lua_pushnumber(L, 2);
+            lua_pushnumber(L, data.m_GradientLimits[1]); // ex
+            lua_settable(L, -3);
+
+            lua_pushnumber(L, 3);
+            lua_pushnumber(L, data.m_GradientLimits[2]); // sy
+            lua_settable(L, -3);
+
+            lua_pushnumber(L, 4);
+            lua_pushnumber(L, data.m_GradientLimits[3]); // ey
+            lua_settable(L, -3);
+
         lua_settable(L, -3);
 
-        lua_pushnumber(L, 2);
-        lua_pushnumber(L, rgba[1]);
+        lua_pushstring(L, "stops");
+        lua_newtable(L);
+        for (int i = 0; i < data.m_StopCount; ++i)
+        {
+            lua_pushnumber(L, i + 1);
+            lua_pushnumber(L, data.m_Stops[i]);
+            lua_settable(L, -3);
+        }
         lua_settable(L, -3);
 
-        lua_pushnumber(L, 3);
-        lua_pushnumber(L, rgba[2]);
-        lua_settable(L, -3);
+        lua_pushstring(L, "colors");
+        lua_newtable(L);
+        for (int i = 0; i < data.m_StopCount; ++i)
+        {
+            const float* color = &data.m_Colors[i * 4];
 
-        lua_pushnumber(L, 4);
-        lua_pushnumber(L, rgba[3]);
-        lua_settable(L, -3);
+            lua_pushinteger(L, i + 1);
+            lua_newtable(L);
 
+                lua_pushnumber(L, 1);
+                lua_pushnumber(L, color[0]);
+                lua_settable(L, -3);
+
+                lua_pushnumber(L, 2);
+                lua_pushnumber(L, color[1]);
+                lua_settable(L, -3);
+
+                lua_pushnumber(L, 3);
+                lua_pushnumber(L, color[2]);
+                lua_settable(L, -3);
+
+                lua_pushnumber(L, 4);
+                lua_pushnumber(L, color[3]);
+                lua_settable(L, -3);
+
+            lua_settable(L, -3);
+        }
+        lua_settable(L, -3);
+    }
     lua_settable(L, -3);
 }
 
@@ -442,6 +515,12 @@ static void LuaInit(lua_State* L)
     // Register render modes
     REGISTER_RIVE_ENUM(MODE_TESSELLATION);
     REGISTER_RIVE_ENUM(MODE_STENCIL_TO_COVER);
+
+    // Register fill types
+    REGISTER_RIVE_ENUM(FILL_TYPE_NONE);
+    REGISTER_RIVE_ENUM(FILL_TYPE_SOLID);
+    REGISTER_RIVE_ENUM(FILL_TYPE_LINEAR);
+    REGISTER_RIVE_ENUM(FILL_TYPE_RADIAL);
 
     #undef REGISTER_RIVE_ENUM
 

@@ -193,10 +193,12 @@ namespace rive
 
     void DefoldTessellationRenderPath::setDrawIndex(uint32_t* drawIndex)
     {
+        /*
         if (*drawIndex != m_DrawIndex)
         {
             AddCmd({.m_Cmd = CMD_UPDATE_DRAW_INDEX, .m_RenderPath = this});
         }
+        */
 
         m_DrawIndex = *drawIndex;
         *drawIndex += 1;
