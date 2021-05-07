@@ -152,6 +152,19 @@ namespace rive
     }
 }
 
+static rive::Artboard* LoadArtBoardFromData(uint8_t* data, size_t dataLength)
+{
+    rive::File* file          = 0;
+    rive::BinaryReader reader = rive::BinaryReader(data, dataLength);
+    rive::ImportResult result = rive::File::import(reader, &file);
+    if (result != rive::ImportResult::success)
+    {
+        return 0;
+    }
+
+    return file->artboard();
+}
+
 static rive::Artboard* LoadArtBoardFromFile(const char* path)
 {
     FILE* fp = fopen(path, "r");
@@ -172,27 +185,24 @@ static rive::Artboard* LoadArtBoardFromFile(const char* path)
         return 0;
     }
 
-    rive::File* file          = 0;
-    rive::BinaryReader reader = rive::BinaryReader(fileBytes, fileBytesLength);
-    rive::ImportResult result = rive::File::import(reader, &file);
-    if (result != rive::ImportResult::success)
+    rive::Artboard* artboard = LoadArtBoardFromData(fileBytes, fileBytesLength);
+    if (artboard == 0)
     {
         delete[] fileBytes;
-        dmLogError("Failed to import file from '%s'", path);
+        dmLogError("Failed to load rive file from '%s'", path);
         return 0;
     }
 
     delete[] fileBytes;
-
-    // dmLogInfo("Num artboards: %d", file->artboardCount());
-
-    return file->artboard();
+    return artboard;
 }
 
 static int Init(lua_State* L)
 {
     // Init and load artboard
-    rive::Artboard* artboard = LoadArtBoardFromFile(lua_tostring(L, 1));
+    size_t dataLen           = 0;
+    const char* data         = lua_tolstring(L, 1, &dataLen);
+    rive::Artboard* artboard = LoadArtBoardFromData((uint8_t*) data, dataLen);
 
     if (artboard != 0)
     {
@@ -207,7 +217,8 @@ static int Init(lua_State* L)
         }
     }
 
-    return 0;
+    lua_pushboolean(L, artboard != 0);
+    return 1;
 }
 
 static int SetListener(lua_State* L)

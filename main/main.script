@@ -34,16 +34,14 @@ local buffer_pool =
 }
 
 function init(self)
-    rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/control.riv")
-    -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/juice.riv")
-    -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/gradient_test.riv")
-    -- rive.init("/Users/jhonny/dev/defold-rive-test/assets/riv/marty_v2.riv")
+    self.rive_init = rive.init(sys.load_resource("/assets/riv/control.riv"))
+
+    if not self.rive_init then
+        print("Rive couldn't be initialized")
+    end
+   
     self.paths = {}
-    self.frame = 0
-
     self.gameobjects = {}
-
-    self.done_once = 0
 
     for i=0,18 do
         buffer_pool:push(self["rive_buffer" .. i])
@@ -101,9 +99,13 @@ local function handle_paint(self, cmd, obj)
 end
 
 local function handle_commands(self, cmds)
+    if cmds == nil then
+        print("No commands")
+        return
+    end
+    
     local buffer_uploads = {}
-
-    for k,v in pairs(cmds) do
+    for k,v in pairs(cmds) do  
         if v.cmd == rive.CMD_DRAW_PATH then
             local rive_obj  = get_object(self, v.id)
             local rive_go   = rive_obj.go
