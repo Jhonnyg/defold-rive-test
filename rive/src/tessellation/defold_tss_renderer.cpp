@@ -97,7 +97,7 @@ namespace rive
                 if (rm == MODE_TESSELLATION)
                 {
                     DefoldTessellationRenderPath* p = (DefoldTessellationRenderPath*) pd.m_Path;
-                    p->drawMesh(pd.m_Transform);
+                    //p->drawMesh(pd.m_Transform);
                 }
             }
 

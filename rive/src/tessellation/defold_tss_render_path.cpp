@@ -33,9 +33,8 @@ namespace rive
         }
     }
 
-    static void getDMBufferStream(dmBuffer::HBuffer buffer, dmhash_t streamHash, float*& stream, uint32_t& stride)
+    static void getDMBufferStream(dmBuffer::HBuffer buffer, dmhash_t streamHash, float*& stream, uint32_t& count, uint32_t& stride)
     {
-        uint32_t count;
         uint32_t components;
         dmBuffer::Result r = dmBuffer::GetStream(buffer, streamHash,
             (void**)&stream, &count, &components, &stride);
@@ -153,12 +152,15 @@ namespace rive
     , m_IsShapeDirty(true)
     , m_DrawIndex(0xffffffff)
     {
-        createDMBuffer(&m_BufferContour, COUNTOUR_BUFFER_ELEMENT_COUNT, "Contour");
+        createDMBuffer(&m_BufferContour, 6, "Contour");
     }
 
     DefoldTessellationRenderPath::~DefoldTessellationRenderPath()
     {
-        dmBuffer::Destroy(m_BufferContour);
+        if (m_BufferContour)
+        {
+            dmBuffer::Destroy(m_BufferContour);
+        }
     }
 
     uintptr_t DefoldTessellationRenderPath::getUserData()
@@ -195,13 +197,6 @@ namespace rive
 
     void DefoldTessellationRenderPath::setDrawIndex(uint32_t* drawIndex)
     {
-        /*
-        if (*drawIndex != m_DrawIndex)
-        {
-            AddCmd({.m_Cmd = CMD_UPDATE_DRAW_INDEX, .m_RenderPath = this});
-        }
-        */
-
         m_DrawIndex = *drawIndex;
         *drawIndex += 1;
 
@@ -485,17 +480,28 @@ namespace rive
             int              tessElementsCount = tessGetElementCount(tess);
             const TESSreal*  tessVertices      = tessGetVertices(tess);
             const TESSindex* tessElements      = tessGetElements(tess);
+            const uint32_t   bufferItemCount   = polySize * tessElementsCount;
 
-            float*   dmPositions = 0;
+            float*   dmPositions      = 0;
             uint32_t dmPositionStride = 0;
-            getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_POSITION, dmPositions, dmPositionStride);
+            uint32_t dmPositionsCount = 0;
+            getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_POSITION, dmPositions, dmPositionsCount, dmPositionStride);
 
-            float*   dmUv0 = 0;
+            if (dmPositionsCount != bufferItemCount)
+            {
+                dmBuffer::Destroy(m_BufferContour);
+                createDMBuffer(&m_BufferContour, bufferItemCount , "Contour");
+                getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_POSITION, dmPositions, dmPositionsCount, dmPositionStride);
+            }
+
+            float*   dmUv0       = 0;
             uint32_t dmUv0Stride = 0;
-            getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_UV0, dmUv0, dmUv0Stride);
+            uint32_t dmUv0Count  = 0;
+            getDMBufferStream(m_BufferContour, VERTEX_STREAM_NAME_UV0, dmUv0, dmUv0Count, dmUv0Stride);
 
             int dmVx = 0;
             int dmUvx = 0;
+            int dmCount = 0;
             for (int i = 0; i < tessElementsCount; ++i)
             {
                 const TESSindex* poly = &tessElements[i * polySize];
@@ -511,6 +517,7 @@ namespace rive
                     dmUv0[dmUvx + 1]      = vx[1];
                     dmUvx                += dmUv0Stride;
                     dmVx                 += dmPositionStride;
+                    dmCount              += 2;
                 }
             }
 
