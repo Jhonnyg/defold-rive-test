@@ -55,10 +55,9 @@ namespace rive
 
     struct RiveTimingData
     {
-        static const int MAX_SAMPLES = 128;
+        static const int MAX_SAMPLES = 2048;
         uint64_t m_Samples[MAX_SAMPLES];
         uint32_t m_SampleCount;
-        uint32_t m_SampleIndex;
     };
 
     struct RiveContext

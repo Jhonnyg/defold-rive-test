@@ -17,3 +17,6 @@ custom_resources = assets/riv/
 [library]
 include_dirs = myextension
 
+[mesh]
+max_count = 256
+
