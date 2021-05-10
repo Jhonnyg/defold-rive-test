@@ -53,12 +53,21 @@ namespace rive
         RenderPaint* m_RenderPaint;
     };
 
+    struct RiveTimingData
+    {
+        static const int MAX_SAMPLES = 128;
+        uint64_t m_Samples[MAX_SAMPLES];
+        uint32_t m_SampleCount;
+        uint32_t m_SampleIndex;
+    };
+
     struct RiveContext
     {
         Artboard*                  m_Artboard;
         LinearAnimationInstance*   m_ArtboardAnimation;
         dmScript::LuaCallbackInfo* m_Listener;
         dmArray<RiveCmd>           m_Commands;
+        RiveTimingData             m_TimingData;
     };
 
     // We'll probably remove the listener

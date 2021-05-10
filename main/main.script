@@ -42,6 +42,7 @@ function init(self)
    
     self.paths = {}
     self.gameobjects = {}
+    self.frame_time = 0
 
     for i=0,18 do
         buffer_pool:push(self["rive_buffer" .. i])
@@ -141,9 +142,27 @@ local function handle_commands(self, cmds)
     end
 end
 
+
+function final(self)
+    --local timings = rive.get_timing_data()
+    --pprint(timings)
+end
+
 function update(self, dt)
     local window_width, window_height = window.get_size()
     local rive_cmds                   = rive.draw_frame(dt, window_width, window_height)
     handle_commands(self, rive_cmds)
+
+    self.frame_time = self.frame_time + dt
+    if self.frame_time > 1 then
+        local timings = rive.get_timing_data()
+        print("------------")
+        print("Timings: ")
+        print("    min: " .. timings.min)
+        print("    max: " .. timings.max)
+        print("    avg: " .. timings.avg)
+        self.frame_time = self.frame_time - math.floor(self.frame_time)
+    end
+    
     -- msg.post ("@render:", "on_rive_update", rive_cmds)
 end

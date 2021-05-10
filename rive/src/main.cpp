@@ -150,6 +150,22 @@ namespace rive
 
         return 0;
     }
+
+    static void BeginTiming()
+    {
+        RiveTimingData& t            = g_Context->m_TimingData;
+        t.m_Samples[t.m_SampleIndex] = dmTime::GetTime();
+    }
+
+    static void EndTiming()
+    {
+        RiveTimingData& t            = g_Context->m_TimingData;
+        t.m_Samples[t.m_SampleIndex] = dmTime::GetTime() - t.m_Samples[t.m_SampleIndex];
+        t.m_SampleCount++;
+        t.m_SampleIndex++;
+        t.m_SampleIndex              = t.m_SampleIndex % RiveTimingData::MAX_SAMPLES;
+        t.m_SampleCount              = t.m_SampleCount < RiveTimingData::MAX_SAMPLES ? t.m_SampleCount : RiveTimingData::MAX_SAMPLES;
+    }
 }
 
 static rive::Artboard* LoadArtBoardFromData(uint8_t* data, size_t dataLength)
@@ -465,6 +481,8 @@ static int DrawFrame(lua_State* L)
 
     if (rive::g_Context->m_Artboard)
     {
+        rive::BeginTiming();
+
         rive::ClearCommands();
         rive::g_Renderer->save();
         rive::g_Renderer->startFrame();
@@ -482,6 +500,8 @@ static int DrawFrame(lua_State* L)
         rive::g_Context->m_Artboard->draw(rive::g_Renderer);
         rive::g_Renderer->restore();
 
+        rive::EndTiming();
+
         return PushRiveCmdsToLua(L);
     }
 
@@ -494,6 +514,37 @@ static int GetRenderMode(lua_State* L)
     return 1;
 }
 
+static int GetTimingData(lua_State* L)
+{
+    uint64_t sample_max = 0;
+    uint64_t sample_min = ULLONG_MAX;
+    uint64_t sample_sum = 0;
+
+    const rive::RiveTimingData t = rive::g_Context->m_TimingData;
+
+    for (int i = 0; i < t.m_SampleCount; ++i)
+    {
+        uint64_t sample = t.m_Samples[i];
+        sample_sum     += sample;
+        sample_max      = sample > sample_max ? sample : sample_max;
+        sample_min      = sample < sample_min ? sample : sample_min;
+    }
+
+    lua_newtable(L);
+
+    lua_pushinteger(L, sample_max);
+    lua_setfield(L, -2, "max");
+
+    lua_pushinteger(L, sample_min);
+    lua_setfield(L, -2, "min");
+
+    float sample_avg = ((float) sample_sum) / ((float) t.m_SampleCount);
+    lua_pushnumber(L, sample_avg );
+    lua_setfield(L, -2, "avg");
+
+    return 1;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
 {
@@ -502,6 +553,7 @@ static const luaL_reg Module_methods[] =
     {"set_render_listener", SetListener},
     {"render_mode",         GetRenderMode},
     {"get_path",            GetPath},
+    {"get_timing_data",     GetTimingData},
     { 0, 0}
 };
 
@@ -556,8 +608,6 @@ dmExtension::Result InitializeMyExtension(dmExtension::Params* params)
     {
         rive::g_Renderer = (rive::DefoldRenderer*) new rive::DefoldStCRenderer;
     }
-
-    memset(rive::g_Context,  0, sizeof(*rive::g_Context));
 
     // Init Lua
     LuaInit(params->m_L);
