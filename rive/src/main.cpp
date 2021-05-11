@@ -488,6 +488,11 @@ static int DrawFrame(lua_State* L)
 
     if (rive::g_Context->m_Artboard)
     {
+        if (rive::g_RenderMode == rive::MODE_TESSELLATION)
+        {
+            rive::DefoldTessellationRenderPath::preFrame();
+        }
+
         rive::BeginTiming();
 
         rive::ClearCommands();

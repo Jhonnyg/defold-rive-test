@@ -44,6 +44,8 @@ namespace rive
         inline const dmBuffer::HBuffer getContourBuffer()       { return m_BufferContour; }
         inline RenderPath*             getParent()              { return m_Parent; }
         inline void                    setParent(RenderPath* p) { m_Parent = p; }
+
+        static void preFrame();
     };
 }
 

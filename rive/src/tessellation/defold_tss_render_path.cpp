@@ -11,11 +11,66 @@
 #include "defold_tss_render_path.h"
 #include "defold_tss_render_paint.h"
 
+#define USE_POOLED_MEMORY 0
+
 namespace rive
 {
     static const dmhash_t VERTEX_STREAM_NAME_POSITION = dmHashString64("position");
     static const dmhash_t VERTEX_STREAM_NAME_NORMAL   = dmHashString64("normal");
     static const dmhash_t VERTEX_STREAM_NAME_UV0      = dmHashString64("uv");
+
+    #ifdef USE_POOLED_MEMORY
+    struct MemPool
+    {
+        unsigned char* buf;
+        unsigned int cap;
+        unsigned int size;
+    };
+
+    static void* poolAlloc( void* userData, unsigned int size )
+    {
+        MemPool* pool = (MemPool*)userData;
+        size = (size+0x7) & ~0x7;
+        if (pool->size + size < pool->cap)
+        {
+            unsigned char* ptr = pool->buf + pool->size;
+            pool->size += size;
+            return ptr;
+        }
+        return 0;
+    }
+
+    static void poolFree( void* userData, void* ptr )
+    {
+        TESS_NOTUSED(userData);
+        TESS_NOTUSED(ptr);
+    }
+
+    static struct TessCtx
+    {
+        MemPool       m_Pool;
+        unsigned char m_Memory[1024*1024*64];
+        TESSalloc     m_Alloc;
+        bool          m_Initialized;
+
+        void Reset()
+        {
+            m_Pool.size = 0;
+            m_Pool.cap = sizeof(m_Memory);
+            m_Pool.buf = m_Memory;
+        }
+
+        TessCtx()
+        {
+            memset(this, 0, sizeof(*this));
+            m_Alloc.memalloc = poolAlloc;
+            m_Alloc.memfree = poolFree;
+            m_Alloc.userData = (void*)&m_Pool;
+            m_Alloc.extraVertices = 256; // realloc not provided, allow 256 extra vertices.
+            Reset();
+        }
+    } g_TessCtx;
+    #endif
 
     static void createDMBuffer(dmBuffer::HBuffer* buffer, uint32_t elementCount, const char* bufferName)
     {
@@ -389,7 +444,10 @@ namespace rive
             for (int i = 0; i < m_Paths.Size(); ++i)
             {
                 DefoldTessellationRenderPath* asDefoldPath = (DefoldTessellationRenderPath*) m_Paths[i].m_Path;
-                asDefoldPath->addContours(tess, m_Paths[i].m_Transform);
+                if (asDefoldPath)
+                {
+                    asDefoldPath->addContours(tess, m_Paths[i].m_Transform);
+                }
             }
             return;
         }
@@ -449,6 +507,13 @@ namespace rive
         return dirty;
     }
 
+    void DefoldTessellationRenderPath::preFrame()
+    {
+    #ifdef USE_POOLED_MEMORY
+        g_TessCtx.Reset();
+    #endif
+    }
+
     void DefoldTessellationRenderPath::updateTesselation()
     {
         const float contourQuality  = 0.8888888888888889f;
@@ -463,8 +528,12 @@ namespace rive
             return;
         }
 
-        // TODO: custom memory management here + move globally or something else
-        TESStesselator* tess = tessNewTess(0);
+        TESSalloc* alloc = 0;
+    #ifdef USE_POOLED_MEMORY
+        alloc = &g_TessCtx.m_Alloc;
+    #endif
+
+        TESStesselator* tess = tessNewTess(alloc);
 
         Mat2D identity;
         addContours(tess, identity);
